@@ -1,8 +1,7 @@
-import 'package:media_store_plus/src/dir_type.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'media_store_plus.dart';
 import 'media_store_method_channel.dart';
+import 'media_store_plus.dart';
 
 abstract class MediaStorePlatform extends PlatformInterface {
   MediaStorePlatform() : super(token: _token);
@@ -48,7 +47,8 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('getUriFromFilePath() has not been implemented.');
   }
 
-  Future<DocumentTree?> requestForAccess({required String? initialRelativePath}) {
+  Future<DocumentTree?> requestForAccess(
+      {required String? initialRelativePath}) {
     throw UnimplementedError('requestForAccess() has not been implemented.');
   }
 
@@ -68,19 +68,24 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('isFileWritable() has not been implemented.');
   }
 
-  Future<bool> readFileUsingUri({required String uriString, required tempFilePath}) {
+  Future<bool> readFileUsingUri(
+      {required String uriString, required tempFilePath}) {
     throw UnimplementedError('readFileUsingUri() has not been implemented.');
   }
 
   Future<bool> readFile(
       {required String tempFilePath,
-        required String fileName,
-        required DirType dirType,
-        required DirName dirName}) {
+      required String fileName,
+      required DirType dirType,
+      required DirName dirName}) {
     throw UnimplementedError('readFile() has not been implemented.');
   }
 
   Future<bool> isFileUriExist({required String uriString}) {
     throw UnimplementedError('isFileUriExist() has not been implemented.');
+  }
+
+  Future<DocumentTree?> getDocumentTree({required String uriString}) {
+    throw UnimplementedError('getDocumentTree() has not been implemented.');
   }
 }

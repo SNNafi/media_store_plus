@@ -134,6 +134,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     call.argument("contentUri")!!,
                 )
             )
+        } else if (call.method == "getDocumentTree") {
+            getFolderChildren(
+                call.argument("contentUri")!!,
+            )
         } else {
             result.notImplemented()
         }
@@ -593,6 +597,36 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         return DocumentsContract.isDocumentUri(activity!!.applicationContext, fileUri);
     }
 
+    private fun getFolderChildren(uriString: String) {
+        try {
+            val directoryUri = Uri.parse(uriString)
+            val documentsTree =
+                DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
+            val children: MutableList<DocumentInfo> = mutableListOf()
+            documentsTree?.let {
+                val childDocuments = documentsTree.listFiles()
+                for (childDocument in childDocuments) {
+                    Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
+                    children.add(
+                        DocumentInfo(
+                            childDocument.name,
+                            childDocument.uri.toString().trim(),
+                            childDocument.isVirtual,
+                            childDocument.isDirectory,
+                            childDocument.type,
+                            childDocument.lastModified(),
+                            childDocument.length(),
+                        )
+                    )
+                }
+            }
+            val documentTreeInfo = DocumentTreeInfo(directoryUri.toString().trim(), children)
+            result.success(documentTreeInfo.json)
+        } catch (e: Exception) {
+            result.success("")
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == 990) {
             if (resultCode == Activity.RESULT_OK) {
@@ -622,11 +656,13 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         } else if (requestCode == 992) {
             // https://developer.android.com/training/data-storage/shared/documents-files#persist-permissions
             if (resultCode == Activity.RESULT_OK) {
-                var uriList: MutableList<String> = mutableListOf()
+                var documentTreeInfo: DocumentTreeInfo? = null
+                val uriList: MutableList<String> = mutableListOf()
                 data?.data?.also { directoryUri ->
                     Log.d("requestForAccess: G", directoryUri.toString())
 
                     uriList.add(directoryUri.toString().trim())
+
 
                     val contentResolver = activity!!.applicationContext.contentResolver
                     val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
@@ -636,16 +672,29 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     val documentsTree =
                         DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
 
+                    val children: MutableList<DocumentInfo> = mutableListOf()
                     documentsTree?.let {
                         val childDocuments = documentsTree.listFiles()
                         for (childDocument in childDocuments) {
                             Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
+                            children.add(
+                                DocumentInfo(
+                                    childDocument.name,
+                                    childDocument.uri.toString().trim(),
+                                    childDocument.isVirtual,
+                                    childDocument.isDirectory,
+                                    childDocument.type,
+                                    childDocument.lastModified(),
+                                    childDocument.length(),
+                                )
+                            )
                             uriList.add(childDocument.uri.toString().trim())
                         }
                     }
+                    documentTreeInfo = DocumentTreeInfo(directoryUri.toString().trim(), children)
 
                 }
-                val string = uriList.joinToString(" ")
+                val string = documentTreeInfo?.json ?: ""
                 Log.d("requestForAccess: G", string)
                 result.success(string)
             } else {

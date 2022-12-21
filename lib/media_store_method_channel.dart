@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
-import 'package:media_store_plus/src/dir_type.dart';
 
 import 'media_store_platform_interface.dart';
 
@@ -83,22 +82,12 @@ class MethodChannelMediaStore extends MediaStorePlatform {
         await methodChannel.invokeMethod<String>('requestForAccess', {
       "initialRelativePath": initialRelativePath,
     });
-
-    final DocumentTree? documentTree;
-    var uriList = (string ?? "").split(" ").toList();
-    if (uriList.length == 0) {
-      documentTree = null;
-    } else if (uriList.length == 1) {
-      documentTree =
-          DocumentTree(uri: Uri.parse(uriList[0]), childrenUriList: []);
+    var jsonString = (string ?? "");
+    if (jsonString.isNotEmpty) {
+      return DocumentTree.fromJson(jsonString);
     } else {
-      final dirUri = Uri.parse(uriList[0]);
-      uriList.removeAt(0);
-      documentTree = DocumentTree(
-          uri: dirUri,
-          childrenUriList: uriList.map((e) => Uri.parse(e)).toList());
+      return null;
     }
-    return documentTree;
   }
 
   @override
@@ -164,5 +153,19 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "contentUri": uriString,
     });
     return status ?? false;
+  }
+
+  @override
+  Future<DocumentTree?> getDocumentTree({required String uriString}) async {
+    final string =
+        await methodChannel.invokeMethod<String>('getDocumentTree', {
+      "contentUri": uriString,
+    });
+    var jsonString = (string ?? "");
+    if (jsonString.isNotEmpty) {
+      return DocumentTree.fromJson(jsonString);
+    } else {
+      return null;
+    }
   }
 }

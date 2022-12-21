@@ -26,7 +26,7 @@ You can read, write, edit, delete in the DCIM, Pictures, Movies, Alarms, Audiobo
 You can also request to read or write any specific folder other than these mentioned above, by file picker with this plugin.
 Again when you will try to read, edit or delete a file that is not created by your app, it will request permission from user for this task automatically.
 
-You can read the full documentation from [here](). You can also check the example app for implementation. Reading the plugin's source code also help you in that case.
+You can read the full documentation from [here](https://pub.dev/documentation/media_store_plus/latest/). You can also check the example app for implementation. Reading the plugin's source code also help you in that case.
 
 # Getting Started
 
@@ -71,7 +71,7 @@ You can create issue(s) for any missing feature(s) that is relevant to this plug
 
 # Status
 
-This is an active project as `MediaStore` is the future of accessing files in android. There's a lot of rooms to improve this plugin. Like writing in external storage i.e _SD CARD_. Currently it supports only the internal storage.
+This is an active project as `MediaStore` is the future of accessing files in android. There's a lot of rooms to improve this plugin.
 
 
 # Support the package (optional)

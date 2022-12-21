@@ -180,7 +180,7 @@ class MediaStore {
     return MediaStorePlatform.instance.getUriFromFilePath(path: path);
   }
 
-  /// From API level 30, app needs to ask for read or write permission for specefic directory.
+  /// From API level 30, app needs to ask for read or write permission for specific directory.
   /// Use this method to get read and write access by file picker.
   /// It will return [DocumentTree] if permission is granted
   ///
@@ -206,17 +206,17 @@ class MediaStore {
 
   /// It will delete existing file using [Uri] from the given [uriString] if exist. Return `true` if deleted or return false
   /// __It will request for user permission if app hasn't permission to delete that file__.
-  Future<bool> deleteFileUsingUri({required String uriString}) async {
+  Future<bool> deleteFileUsingUri({required String uriString}) {
     return MediaStorePlatform.instance.deleteFileUsingUri(uriString: uriString);
   }
 
   /// Return `true` if the file from the given [uriString] is deletable
-  Future<bool> isFileDeletable({required String uriString}) async {
+  Future<bool> isFileDeletable({required String uriString}) {
     return MediaStorePlatform.instance.isFileDeletable(uriString: uriString);
   }
 
   /// Return `true` if the file from the given [uriString] is writable
-  Future<bool> isFileWritable({required String uriString}) async {
+  Future<bool> isFileWritable({required String uriString}) {
     return MediaStorePlatform.instance.isFileWritable(uriString: uriString);
   }
 
@@ -225,7 +225,7 @@ class MediaStore {
   /// To use this method, first create a new file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents to this temporary path to read directy by [File].
   Future<bool> readFileUsingUri(
-      {required String uriString, required tempFilePath}) async {
+      {required String uriString, required tempFilePath}) {
     return MediaStorePlatform.instance
         .readFileUsingUri(uriString: uriString, tempFilePath: tempFilePath);
   }
@@ -271,7 +271,13 @@ class MediaStore {
   }
 
   /// Return `true` if the file from the given [uriString] exists
-  Future<bool> isFileUriExist({required String uriString}) async {
+  Future<bool> isFileUriExist({required String uriString}) {
     return MediaStorePlatform.instance.isFileUriExist(uriString: uriString);
+  }
+
+  /// Return [DocumentTree] if the given folder uri exist and have permission to read files from that location
+  /// To grant read or write in a particular folder use [requestForAccess]
+  Future<DocumentTree?> getDocumentTree({required String uriString}) {
+    return MediaStorePlatform.instance.getDocumentTree(uriString: uriString);
   }
 }
