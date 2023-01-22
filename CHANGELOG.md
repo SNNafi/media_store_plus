@@ -6,3 +6,9 @@ Initial release
 
 Add `Document` class to get info about a file (name, content uri, type, modification time, size,)
 Add `getDocumentTree()` method to list folder files by folder's content uri
+
+## 0.0.3
+
+Introduce 'relativePath'. Check the documentation for more info
+Fix bug when file name contains space.
+Add supports for `application/octet-stream` mime type file

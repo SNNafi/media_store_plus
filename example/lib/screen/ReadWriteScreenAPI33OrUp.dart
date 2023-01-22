@@ -138,10 +138,12 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
     if ((await file.exists())) {
       print("TRUe ${file.path}");
 
-      await readOrWriteApiLevel33WithPermission(initialRelativePath: "Download/TestD", operation: () async {
-       final text = await file.readAsString();
-       print(text);
-      });
+      await readOrWriteApiLevel33WithPermission(
+          initialRelativePath: "Download/TestD",
+          operation: () async {
+            final text = await file.readAsString();
+            print(text);
+          });
 
       setState(() {
         // _imageAvailable = true;

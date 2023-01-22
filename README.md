@@ -24,9 +24,9 @@ So, only solution to use platform channel for this. Actually, this issue lead me
 
 You can read, write, edit, delete in the DCIM, Pictures, Movies, Alarms, Audiobooks, Music, Podcasts, Ringtones, Download with this plugin.
 You can also request to read or write any specific folder other than these mentioned above, by file picker with this plugin.
-Again when you will try to read, edit or delete a file that is not created by your app, it will request permission from user for this task automatically.
+Again when you will try to read, edit or delete a file that is not created by your app, it will request permission from user for that task automatically.
 
-You can read the full documentation from [here](https://pub.dev/documentation/media_store_plus/latest/). You can also check the example app for implementation. Reading the plugin's source code also help you in that case.
+__You can read the full documentation from [here](https://pub.dev/documentation/media_store_plus/latest/).__ You can also check the example app for implementation. Reading the plugin's source code also help you in that case.
 
 # Getting Started
 
@@ -34,7 +34,7 @@ First, add `media_store_plus` as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  media_store_plus: ^0.0.1
+  media_store_plus: ^0.0.3
 ```
 
 Don't forget to `flutter pub get`.

@@ -21,25 +21,31 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('getPlatformSDKInt() has not been implemented.');
   }
 
-  Future<bool> saveFile(
-      {required String tempFilePath,
-      required String fileName,
-      required DirType dirType,
-      required DirName dirName}) {
+  Future<bool> saveFile({
+    required String tempFilePath,
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) {
     throw UnimplementedError('saveFile() has not been implemented.');
   }
 
-  Future<bool> deleteFile(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) {
+  Future<bool> deleteFile({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) {
     throw UnimplementedError('deleteFile() has not been implemented.');
   }
 
-  Future<Uri?> getFileUri(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) {
+  Future<Uri?> getFileUri({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) {
     throw UnimplementedError('getFileUri() has not been implemented.');
   }
 
@@ -73,11 +79,13 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('readFileUsingUri() has not been implemented.');
   }
 
-  Future<bool> readFile(
-      {required String tempFilePath,
-      required String fileName,
-      required DirType dirType,
-      required DirName dirName}) {
+  Future<bool> readFile({
+    required String tempFilePath,
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) {
     throw UnimplementedError('readFile() has not been implemented.');
   }
 

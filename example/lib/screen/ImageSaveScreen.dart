@@ -21,6 +21,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
   bool _imageAvailable = false;
   String _fileUri = "";
 
+  String fileName = "al aqsa_mosque.jpeg";
+
+  /// set `null`to save in relativePath [MediaStore.appFolder]
+  String? relativePath = "AnotherFolder";
+
   @override
   void initState() {
     super.initState();
@@ -44,9 +49,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
-                      fileName: "al_aqsa_mosque.jpeg",
-                      dirType: DirType.photo,
-                      dirName: DirType.photo.defaults);
+                    fileName: fileName,
+                    dirType: DirType.photo,
+                    dirName: DirType.photo.defaults,
+                    relativePath: relativePath,
+                  );
                   if (uri != null) {
                     setState(() {
                       _fileUri = uri.path;
@@ -74,14 +81,15 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
 
                     Directory directory =
                         await getApplicationSupportDirectory();
-                    File tempFile =
-                        File(directory.path + "/" + "al_aqsa_mosque.jpeg");
+                    File tempFile = File(directory.path + "/" + fileName);
                     await (await rootBundle.load("assets/al_aqsa_mosque.jpeg"))
                         .writeToFile(tempFile);
                     final bool status = await mediaStorePlugin.saveFile(
-                        tempFilePath: tempFile.path,
-                        dirType: DirType.photo,
-                        dirName: DirType.photo.defaults);
+                      tempFilePath: tempFile.path,
+                      dirType: DirType.photo,
+                      dirName: DirType.photo.defaults,
+                      relativePath: relativePath,
+                    );
                     setState(() {
                       _isSavingTaskOngoing = false;
                       _imageAvailable = status;
@@ -102,9 +110,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                       });
 
                       final bool status = await mediaStorePlugin.deleteFile(
-                          fileName: "al_aqsa_mosque.jpeg",
-                          dirType: DirType.photo,
-                          dirName: DirType.photo.defaults);
+                        fileName: fileName,
+                        dirType: DirType.photo,
+                        dirName: DirType.photo.defaults,
+                        relativePath: relativePath,
+                      );
                       print("Delete Status: $status");
 
                       if (status) {
@@ -118,9 +128,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
               if (_imageAvailable)
                 Image.file(
                   getFile(
-                      fileName: "al_aqsa_mosque.jpeg",
-                      dirType: DirType.photo,
-                      dirName: DirType.photo.defaults),
+                    fileName: fileName,
+                    dirType: DirType.photo,
+                    dirName: DirType.photo.defaults,
+                    relativePath: relativePath,
+                  ),
                   height: 400,
                   width: 300,
                   fit: BoxFit.fitWidth,
@@ -135,9 +147,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
   Future<void> checkIfExist() async {
     print("checkIfExist");
     File file = getFile(
-        fileName: "al_aqsa_mosque.jpeg",
-        dirType: DirType.photo,
-        dirName: DirType.photo.defaults);
+      fileName: fileName,
+      dirType: DirType.photo,
+      dirName: DirType.photo.defaults,
+      relativePath: relativePath,
+    );
 
     if ((await file.exists())) {
       setState(() {

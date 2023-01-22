@@ -26,5 +26,10 @@ data class DocumentInfo(
     @SerializedName("last_modified")
     val lastModified: Long,
     @SerializedName("file_length")
-    val fileLength: Long
-)
+    val fileLength: Long,
+    @SerializedName("is_writable")
+    val isWritable: Boolean?,
+    @SerializedName("is_deletable")
+    val isDeletable: Boolean?,
+
+    )

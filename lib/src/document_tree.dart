@@ -36,9 +36,20 @@ class Document {
   String? fileType;
   int lastModified;
   int fileLength;
+  bool? isWritable;
+  bool? isDeletable;
 
-  Document(this.uriString, this.name, this.isVirtual, this.isDirectory,
-      this.fileType, this.lastModified, this.fileLength);
+  Document(
+    this.uriString,
+    this.name,
+    this.isVirtual,
+    this.isDirectory,
+    this.fileType,
+    this.lastModified,
+    this.fileLength,
+    this.isWritable,
+    this.isDeletable,
+  );
 
   factory Document.fromJson(Map<String, dynamic> data) => Document(
         data["uri_string"],
@@ -48,6 +59,8 @@ class Document {
         data["file_type"],
         data["last_modified"],
         data["file_length"],
+        data["is_writable"],
+        data["is_deletable"],
       );
 
   /// File uri
@@ -55,6 +68,6 @@ class Document {
 
   @override
   String toString() {
-    return "$name - $fileType - isDirectory:$isDirectory - isVirtual:$isVirtual - lastModified:$lastModified - fileLength:$fileLength";
+    return "$name - $fileType - isDirectory:$isDirectory - isVirtual:$isVirtual - lastModified:$lastModified - fileLength:$fileLength - writable:$isWritable - deletable:$isDeletable";
   }
 }

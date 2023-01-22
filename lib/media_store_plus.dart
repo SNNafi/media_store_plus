@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:media_store_plus/src/dir_type.dart';
 import 'package:media_store_plus/src/document_tree.dart';
 import 'package:media_store_plus/src/exceptions.dart';
-import 'package:meta/meta.dart';
+import 'package:media_store_plus/src/extensions.dart';
 
 import 'media_store_platform_interface.dart';
 
 export 'package:media_store_plus/src/dir_type.dart';
 export 'package:media_store_plus/src/document_tree.dart';
+export 'package:media_store_plus/src/extensions.dart';
 
 /// To use Android `MediaStore` API in Flutter. It supports both read & write operation in every android version.
 /// It also requests for appropriate permission, if needed.
@@ -40,16 +41,23 @@ class MediaStore {
   /// Then it will delete the temporary file.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
   ///
-  /// To save in /storage/emulated/0/Podcasts/[MediaStore.appFolder]/Podcasts,
+  /// To save in /storage/emulated/0/Podcasts/[relativePath],
   /// [dirType] = [DirType.audio] &
   /// [dirName] = [DirName.podcasts]
   ///
+  /// If you want to save to the root of a directory, like, /storage/emulated/0/Podcasts,
+  /// Set [relativePath] = [FilePath.root]
+  /// Or in any other directory, set [relativePath] as you like,
+  /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
+  ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<bool> saveFile(
-      {required String tempFilePath,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> saveFile({
+    required String tempFilePath,
+    required DirType dirType,
+    required DirName dirName,
+    String? relativePath,
+  }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -60,13 +68,15 @@ class MediaStore {
     if (_sdkInt >= 29) {
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       return await MediaStorePlatform.instance.saveFile(
-          tempFilePath: tempFilePath,
-          fileName: fileName,
-          dirType: dirType,
-          dirName: dirName);
+        tempFilePath: tempFilePath,
+        fileName: fileName,
+        dirType: dirType,
+        dirName: dirName,
+        relativePath: relativePath.orAppFolder,
+      );
     } else {
-      Directory directory =
-          Directory(dirType.fullPath(appFolder: appFolder, dirName: dirName));
+      Directory directory = Directory(dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName));
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
       File file = await tempFile.copy(directory.path + "/" + fileName);
@@ -83,10 +93,12 @@ class MediaStore {
   ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<bool> deleteFile(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> deleteFile({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    String? relativePath,
+  }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -95,11 +107,15 @@ class MediaStore {
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
     if (_sdkInt >= 29) {
-      return await MediaStorePlatform.instance
-          .deleteFile(fileName: fileName, dirType: dirType, dirName: dirName);
+      return await MediaStorePlatform.instance.deleteFile(
+        fileName: fileName,
+        dirType: dirType,
+        dirName: dirName,
+        relativePath: relativePath.orAppFolder,
+      );
     } else {
-      Directory directory =
-          Directory(dirType.fullPath(appFolder: appFolder, dirName: dirName));
+      Directory directory = Directory(dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File(directory.path + "/" + fileName);
       if ((await file.exists())) {
         await file.delete();
@@ -110,17 +126,25 @@ class MediaStore {
 
   /// It will return file [Uri] if file exist, otherwise `null`
   ///
-  /// To get [Uri] for /storage/emulated/0/Podcasts/[MediaStore.appFolder]/DailyQuran.mp3,
+  /// To get [Uri] for /storage/emulated/0/Podcasts/[relativePath]/DailyQuran.mp3,
   /// [fileName] = DailyQuran.mp3
   /// [dirType] = [DirType.audio]
   /// [dirName] = [DirName.podcasts]
   ///
+  /// If you want to get it from the root of a directory, like, /storage/emulated/0/Podcasts,
+  /// Set [relativePath] = [FilePath.root]
+  /// Or in any other directory, set [relativePath] as you like,
+  /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
+  ///
+  ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<Uri?> getFileUri(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<Uri?> getFileUri({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    String? relativePath,
+  }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -129,11 +153,15 @@ class MediaStore {
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
     if (_sdkInt >= 29) {
-      return await MediaStorePlatform.instance
-          .getFileUri(fileName: fileName, dirType: dirType, dirName: dirName);
+      return await MediaStorePlatform.instance.getFileUri(
+        fileName: fileName,
+        dirType: dirType,
+        dirName: dirName,
+        relativePath: relativePath.orAppFolder,
+      );
     } else {
-      Directory directory =
-          Directory(dirType.fullPath(appFolder: appFolder, dirName: dirName));
+      Directory directory = Directory(dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File(directory.path + "/" + fileName);
       return await MediaStorePlatform.instance
           .getUriFromFilePath(path: file.path);
@@ -147,12 +175,20 @@ class MediaStore {
   /// [dirType] = [DirType.download]
   /// [dirName] = [DirName.download]
   ///
+  /// If you want to check it in the root of a directory, like, /storage/emulated/0/Podcasts,
+  /// Set [relativePath] = [FilePath.root]
+  /// Or in any other directory, set [relativePath] as you like,
+  /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
+  ///
+  ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<bool> isFileExist(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> isFileExist({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    String? relativePath,
+  }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -161,12 +197,16 @@ class MediaStore {
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
     if (_sdkInt >= 29) {
-      final uri = await MediaStorePlatform.instance
-          .getFileUri(fileName: fileName, dirType: dirType, dirName: dirName);
+      final uri = await MediaStorePlatform.instance.getFileUri(
+        fileName: fileName,
+        dirType: dirType,
+        dirName: dirName,
+        relativePath: relativePath.orAppFolder,
+      );
       return uri != null;
     } else {
-      Directory directory =
-          Directory(dirType.fullPath(appFolder: appFolder, dirName: dirName));
+      Directory directory = Directory(dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File(directory.path + "/" + fileName);
       final uri =
           await MediaStorePlatform.instance.getUriFromFilePath(path: file.path);
@@ -175,7 +215,6 @@ class MediaStore {
   }
 
   /// This method is not meant for using outside the plugin.
-  @internal
   Future<Uri?> getUriFromFilePath({required String path}) {
     return MediaStorePlatform.instance.getUriFromFilePath(path: path);
   }
@@ -241,13 +280,21 @@ class MediaStore {
   /// [dirType] = [DirType.audio] &
   /// [dirName] = [DirName.podcasts]
   ///
+  /// If you want to read it from the root of a directory, like, /storage/emulated/0/Podcasts,
+  /// Set [relativePath] = [FilePath.root]
+  /// Or in any other directory, set [relativePath] as you like,
+  /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
+  ///
+  ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<bool> readFile(
-      {required String fileName,
-      required String tempFilePath,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> readFile({
+    required String fileName,
+    required String tempFilePath,
+    required DirType dirType,
+    required DirName dirName,
+    String? relativePath,
+  }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -257,13 +304,15 @@ class MediaStore {
 
     if (_sdkInt >= 29) {
       return await MediaStorePlatform.instance.readFile(
-          tempFilePath: tempFilePath,
-          fileName: fileName,
-          dirType: dirType,
-          dirName: dirName);
+        tempFilePath: tempFilePath,
+        fileName: fileName,
+        dirType: dirType,
+        dirName: dirName,
+        relativePath: relativePath.orAppFolder,
+      );
     } else {
-      Directory directory =
-          Directory(dirType.fullPath(appFolder: appFolder, dirName: dirName));
+      Directory directory = Directory(dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File(directory.path + "/" + fileName);
       File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();

@@ -7,13 +7,13 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockMediaStorePlusPlatform
     with MockPlatformInterfaceMixin
     implements MediaStorePlusPlatform {
-
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 }
 
 void main() {
-  final MediaStorePlusPlatform initialPlatform = MediaStorePlusPlatform.instance;
+  final MediaStorePlusPlatform initialPlatform =
+      MediaStorePlusPlatform.instance;
 
   test('$MethodChannelMediaStorePlus is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelMediaStorePlus>());

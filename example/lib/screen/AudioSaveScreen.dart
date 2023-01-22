@@ -24,6 +24,8 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
   bool _audioAvailable = false;
   String _fileUri = "";
 
+  String fileName = "ayat_ul_kursi.mp3";
+
   AudioPlayer? player;
 
   @override
@@ -50,7 +52,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
-                      fileName: "ayat_ul_kursi.mp3",
+                      fileName: fileName,
                       dirType: widget.dirType,
                       dirName: widget.dirType.defaults);
                   if (uri != null) {
@@ -80,14 +82,14 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
 
                     Directory directory =
                         await getApplicationSupportDirectory();
-                    File tempFile =
-                        File(directory.path + "/" + "ayat_ul_kursi.mp3");
+                    File tempFile = File(directory.path + "/" + fileName);
                     await (await rootBundle.load("assets/ayat_ul_kursi.mp3"))
                         .writeToFile(tempFile);
                     final bool status = await mediaStorePlugin.saveFile(
-                        tempFilePath: tempFile.path,
-                        dirType: widget.dirType,
-                        dirName: widget.dirType.defaults);
+                      tempFilePath: tempFile.path,
+                      dirType: widget.dirType,
+                      dirName: widget.dirType.defaults,
+                    );
                     setState(() {
                       _isSavingTaskOngoing = false;
                       _audioAvailable = status;
@@ -110,7 +112,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                       });
 
                       final bool status = await mediaStorePlugin.deleteFile(
-                          fileName: "ayat_ul_kursi.mp3",
+                          fileName: fileName,
                           dirType: widget.dirType,
                           dirName: widget.dirType.defaults);
                       print("Delete Status: $status");
@@ -134,7 +136,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                           if (player == null) {
                             player = AudioPlayer();
                             await player?.play(DeviceFileSource(getFile(
-                                    fileName: "ayat_ul_kursi.mp3",
+                                    fileName: fileName,
                                     dirType: widget.dirType,
                                     dirName: widget.dirType.defaults)
                                 .path));
@@ -167,7 +169,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
 
     // Using direct path
     // File file = getFile(
-    //     fileName: "ayat_ul_kursi.mp3",
+    //     fileName: fileName,
     //     dirType: widget.dirType,
     //     dirName: widget.dirType.defaults);
     //
@@ -180,19 +182,20 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
     // Using uri
 
     final Uri? uri = await mediaStorePlugin.getFileUri(
-        fileName: "ayat_ul_kursi.mp3",
+        fileName: fileName,
         dirType: widget.dirType,
         dirName: widget.dirType.defaults);
 
     if (uri != null) {
-      File tempFile = File((await getApplicationSupportDirectory()).path + "/" + "ayat_ul_kursi.mp3");
+      File tempFile =
+          File((await getApplicationSupportDirectory()).path + "/" + fileName);
       // read using uri
       bool status = await mediaStorePlugin.readFile(
-          fileName: "ayat_ul_kursi.mp3",
+          fileName: fileName,
           tempFilePath: tempFile.path,
           dirType: widget.dirType,
           dirName: widget.dirType.defaults);
-      
+
       if (status) {
         player = AudioPlayer();
         player?.play(BytesSource(await tempFile.readAsBytes()));
@@ -201,7 +204,6 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
           _audioAvailable = true;
         });
       }
-      
     }
   }
 }

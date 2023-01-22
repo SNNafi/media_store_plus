@@ -1,5 +1,11 @@
-import 'package:media_store_plus/media_store_plus.dart';
 import 'package:media_store_plus/src/exceptions.dart';
+
+///
+class FilePath {
+  FilePath._();
+
+  static String root = "";
+}
 
 /// Directory Type
 enum DirType { photo, audio, video, download }
@@ -33,11 +39,16 @@ extension DirTypeVale on DirType {
     }
   }
 
-  /// It will provide the direct file path for [DirType] & [DirName] using [MediaStore.appFolder]
-  /// Example: For [DirType.audio] && [DirName.podcasts], it will return "/storage/emulated/0/Podcasts/[MediaStore.appFolder]"
-  String fullPath({required String appFolder, required DirName dirName}) {
+  /// It will provide the direct file path for [DirType] & [DirName] using [relativePath]
+  /// Example: For [DirType.audio] && [DirName.podcasts], it will return "/storage/emulated/0/Podcasts/[relativePath]"
+  /// For setting, [relativePath] = [FilePath.root], it will return "/storage/emulated/0/Podcasts"
+  String fullPath({required String relativePath, required DirName dirName}) {
     checkDirTypeAndName(dirType: this, dirName: dirName);
-    return "/storage/emulated/0/${dirName.folder}/$appFolder";
+    final segment = relativePath.trim();
+    if (segment == FilePath.root) {
+      return "/storage/emulated/0/${dirName.folder}";
+    }
+    return "/storage/emulated/0/${dirName.folder}/$segment";
   }
 }
 

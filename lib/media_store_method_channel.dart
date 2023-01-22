@@ -17,45 +17,51 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<bool> saveFile(
-      {required String tempFilePath,
-      required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> saveFile({
+    required String tempFilePath,
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) async {
     final status = await methodChannel.invokeMethod<bool>('saveFile', {
       "tempFilePath": tempFilePath,
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
-      "appFolder": MediaStore.appFolder
+      "appFolder": relativePath,
     });
     return status ?? false;
   }
 
   @override
-  Future<bool> deleteFile(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> deleteFile({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) async {
     final status = await methodChannel.invokeMethod<bool>('deleteFile', {
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
-      "appFolder": MediaStore.appFolder
+      "appFolder": relativePath,
     });
     return status ?? false;
   }
 
   @override
-  Future<Uri?> getFileUri(
-      {required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<Uri?> getFileUri({
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) async {
     final uriString = await methodChannel.invokeMethod<String?>('getFileUri', {
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
-      "appFolder": MediaStore.appFolder
+      "appFolder": relativePath,
     });
     if (uriString != null) {
       return Uri.parse(uriString);
@@ -132,17 +138,19 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<bool> readFile(
-      {required String tempFilePath,
-      required String fileName,
-      required DirType dirType,
-      required DirName dirName}) async {
+  Future<bool> readFile({
+    required String tempFilePath,
+    required String fileName,
+    required DirType dirType,
+    required DirName dirName,
+    required String relativePath,
+  }) async {
     final status = await methodChannel.invokeMethod<bool>('readFile', {
       "tempFilePath": tempFilePath,
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
-      "appFolder": MediaStore.appFolder
+      "appFolder": relativePath,
     });
     return status ?? false;
   }
@@ -157,8 +165,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
 
   @override
   Future<DocumentTree?> getDocumentTree({required String uriString}) async {
-    final string =
-        await methodChannel.invokeMethod<String>('getDocumentTree', {
+    final string = await methodChannel.invokeMethod<String>('getDocumentTree', {
       "contentUri": uriString,
     });
     var jsonString = (string ?? "");

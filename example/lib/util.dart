@@ -6,23 +6,29 @@ import 'package:path_provider/path_provider.dart';
 
 import 'main.dart';
 
-String getPath(
-    {required String fileName,
-    required DirType dirType,
-    required DirName dirName}) {
-  return dirType.fullPath(appFolder: MediaStore.appFolder, dirName: dirName) +
+String getPath({
+  String? relativePath,
+  required String fileName,
+  required DirType dirType,
+  required DirName dirName,
+}) {
+  return dirType.fullPath(
+          relativePath: relativePath.orAppFolder, dirName: dirName) +
       "/" +
       fileName;
 }
 
-File getFile(
-    {required String fileName,
-    required DirType dirType,
-    required DirName dirName}) {
+File getFile({
+  String? relativePath,
+  required String fileName,
+  required DirType dirType,
+  required DirName dirName,
+}) {
   return File(
-      dirType.fullPath(appFolder: MediaStore.appFolder, dirName: dirName) +
-          "/" +
-          fileName);
+    dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName) +
+        "/" +
+        fileName,
+  );
 }
 
 extension ByteDataToFile on ByteData {
@@ -99,7 +105,7 @@ Future<bool> readOrWriteApiLevel33WithPermission(
       // delete file by uri
       // await mediaStorePlugin.deleteFileUsingUri(uriString: uriString);
 
-      // read folder info by folder uri
+      print("read folder info by folder uri");
       DocumentTree? docTree = await mediaStorePlugin.getDocumentTree(
           uriString: documentTree.uriString);
       if (docTree != null && docTree.childrenUriList.isNotEmpty) {
