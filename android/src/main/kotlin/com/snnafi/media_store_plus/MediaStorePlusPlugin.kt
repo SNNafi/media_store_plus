@@ -12,7 +12,6 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
-import android.webkit.MimeTypeMap
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import androidx.documentfile.provider.DocumentFile
@@ -247,15 +246,6 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             dirName: String
     ) {
         // { photo, music, video, download }
-        val extension: String? = MimeTypeMap.getFileExtensionFromUrl(name.replace(" ", ""))
-        Log.d("Extension", extension?.toString().toString())
-        val mimeType: String;
-        if (extension != null && !extension.trim().isEmpty()) {
-            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)!!
-        } else {
-            mimeType = "application/octet-stream"
-        }
-        Log.d("MimeType", mimeType)
         Log.d("DirName", dirName)
 
         val relativePath: String;
@@ -280,7 +270,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
-                put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+               // put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
                 put(
                         MediaStore.Audio.Media.RELATIVE_PATH, relativePath
                 )
@@ -608,14 +598,6 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         this.dirType = dirType
         this.dirName = dirName
 
-        val extension: String? = MimeTypeMap.getFileExtensionFromUrl(name.replace(" ", ""))
-        val mimeType: String;
-        if (extension != null && !extension.trim().isEmpty()) {
-            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)!!
-        } else {
-            mimeType = "application/octet-stream"
-        }
-        Log.d("MimeType", mimeType)
         Log.d("DirName", dirName)
 
         try {

@@ -9,6 +9,10 @@ Add `getDocumentTree()` method to list folder files by folder's content uri
 
 ## 0.0.3
 
-Introduce 'relativePath'. Check the documentation for more info
-Fix bug when file name contains space.
-Add supports for `application/octet-stream` mime type file
+Introduce 'relativePath'. Check the documentation for more info </br>
+Fix bug when file name contains space. </br>
+Add supports for `application/octet-stream` mime type file </br>
+
+## 0.0.4
+
+Remove munual `MIME_TYPE` detection. Let the android decides this.

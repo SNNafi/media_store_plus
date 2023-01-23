@@ -1,7 +1,7 @@
 # media_store_plus
 
 To use Android `MediaStore` API in Flutter.
-It supports both read & write operation in every android version.
+It supports both read & write operation in every android version through flutter.
 It also requests for appropriate permissions, if needed.
 
 # Motivation
@@ -34,7 +34,7 @@ First, add `media_store_plus` as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  media_store_plus: ^0.0.3
+  media_store_plus: ^0.0.4
 ```
 
 Don't forget to `flutter pub get`.
