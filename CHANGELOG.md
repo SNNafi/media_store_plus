@@ -16,3 +16,7 @@ Add supports for `application/octet-stream` mime type file </br>
 ## 0.0.4
 
 Remove munual `MIME_TYPE` detection. Let the android decides this.
+
+## 0.0.5
+
+Fix bug in save files if directory not exist, under API level 29.

@@ -77,6 +77,9 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
+
+      await Directory(directory.path).create(recursive: true);
+
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
       File file = await tempFile.copy(directory.path + "/" + fileName);

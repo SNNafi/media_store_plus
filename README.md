@@ -34,7 +34,7 @@ First, add `media_store_plus` as a dependency in your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  media_store_plus: ^0.0.4
+  media_store_plus: ^0.0.5
 ```
 
 Don't forget to `flutter pub get`.
