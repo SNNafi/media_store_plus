@@ -20,3 +20,7 @@ Remove munual `MIME_TYPE` detection. Let the android decides this.
 ## 0.0.5
 
 Fix bug in save files if directory not exist, under API level 29.
+
+## 0.0.6
+
+Fix bug in native side due to gson in release mode

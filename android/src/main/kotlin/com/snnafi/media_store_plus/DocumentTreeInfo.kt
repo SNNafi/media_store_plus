@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName
 data class DocumentTreeInfo(
     @SerializedName("uri_string")
     val uri: String,
+    @SerializedName("children")
     val children: List<DocumentInfo>
 ) {
     val json: String
@@ -14,6 +15,7 @@ data class DocumentTreeInfo(
 }
 
 data class DocumentInfo(
+    @SerializedName("name")
     val name: String?,
     @SerializedName("uri_string")
     val uri: String,
