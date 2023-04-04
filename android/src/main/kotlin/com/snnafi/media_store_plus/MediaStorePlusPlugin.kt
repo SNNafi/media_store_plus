@@ -41,7 +41,7 @@ fun String.capitalized(): String {
 class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         PluginRegistry.ActivityResultListener {
 
-    private var activity: FlutterActivity? = null
+    private var activity: Activity? = null
     private lateinit var channel: MethodChannel
     private lateinit var result: io.flutter.plugin.common.MethodChannel.Result
 
@@ -143,7 +143,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        this.activity = binding.activity as FlutterActivity
+        this.activity = binding.activity
         binding.addActivityResultListener(this)
     }
 
