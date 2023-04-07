@@ -23,4 +23,8 @@ Fix bug in save files if directory not exist, under API level 29.
 
 ## 0.0.6
 
-Fix bug in native side due to gson in release mode
+Fix bug in native side due to gson in release mode.
+
+## 0.0.7
+
+Replace `FlutterActivity` with `Activity` to support all subclasses of `Activity`, thus resolving the casting errors.
