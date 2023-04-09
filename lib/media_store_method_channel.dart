@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
@@ -90,7 +92,8 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     });
     var jsonString = (string ?? "");
     if (jsonString.isNotEmpty) {
-      return DocumentTree.fromJson(jsonString);
+      final json = jsonDecode(jsonString);
+      return DocumentTree.fromJson(json);
     } else {
       return null;
     }
@@ -170,7 +173,8 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     });
     var jsonString = (string ?? "");
     if (jsonString.isNotEmpty) {
-      return DocumentTree.fromJson(jsonString);
+      final json = jsonDecode(jsonString);
+      return DocumentTree.fromJson(json);
     } else {
       return null;
     }
