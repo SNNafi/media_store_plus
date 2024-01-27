@@ -51,6 +51,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private var dirType: Int = 0
     private lateinit var dirName: String
     private lateinit var appFolder: String
+    private var externalVolumeName: String? = null
 
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -68,7 +69,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     call.argument("fileName")!!,
                     call.argument("appFolder")!!,
                     call.argument("dirType")!!,
-                    call.argument("dirName")!!
+                    call.argument("dirName")!!,
+                    call.argument("externalVolumeName"),
             )
         } else if (call.method == "deleteFile") {
             deleteFile(
@@ -170,7 +172,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             name: String,
             appFolder: String,
             dirType: Int,
-            dirName: String
+            dirName: String,
+            externalVolumeName: String?
     ) {
         try {
             this.fileName = name
@@ -178,7 +181,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             this.appFolder = appFolder
             this.dirType = dirType
             this.dirName = dirName
-            createOrUpdateFile(path, name, appFolder, dirType, dirName)
+            this.externalVolumeName = externalVolumeName
+            createOrUpdateFile(path, name, appFolder, dirType, dirName, externalVolumeName)
             File(tempFilePath).delete()
             result.success(true)
 
@@ -243,7 +247,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             name: String,
             appFolder: String,
             dirType: Int,
-            dirName: String
+            dirName: String,
+            externalVolumeName: String?
     ) {
         // { photo, music, video, download }
         Log.d("DirName", dirName)
@@ -259,21 +264,21 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         if (dirType == 0) {
             collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         } else if (dirType == 1) {
-            collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            collection = if (externalVolumeName != null) {
+                MediaStore.Audio.Media.getContentUri(MediaStore.getExternalVolumeNames(activity!!.applicationContext).find { it == externalVolumeName })
+            } else {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
         } else if (dirType == 2) {
             collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         } else {
             collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         }
-
         deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
-               // put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
-                put(
-                        MediaStore.Audio.Media.RELATIVE_PATH, relativePath
-                )
+                put(MediaStore.Audio.Media.RELATIVE_PATH, relativePath)
                 put(MediaStore.Audio.Media.IS_PENDING, 1)
             }
 
@@ -675,7 +680,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                         fileName,
                         appFolder,
                         dirType,
-                        dirName
+                        dirName,
+                        externalVolumeName,
                 )
             } else {
                 result.success(false)
