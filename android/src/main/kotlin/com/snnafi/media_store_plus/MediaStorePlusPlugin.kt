@@ -265,7 +265,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         } else if (dirType == 1) {
             collection = if (externalVolumeName != null) {
-                MediaStore.Audio.Media.getContentUri(MediaStore.getExternalVolumeNames(activity!!.applicationContext).find { it == externalVolumeName })
+                MediaStore.Audio.Media.getContentUri(MediaStore.getExternalVolumeNames(activity!!.applicationContext).find { it.lowercase()  == externalVolumeName.lowercase()   })
             } else {
                 MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
             }
