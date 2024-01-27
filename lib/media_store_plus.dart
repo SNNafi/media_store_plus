@@ -57,6 +57,7 @@ class MediaStore {
     required DirType dirType,
     required DirName dirName,
     String? relativePath,
+    externalVolumeName,
   }) async {
     if (appFolder.isEmpty) {
       throw AppFolderNotSetException(
@@ -73,6 +74,7 @@ class MediaStore {
         dirType: dirType,
         dirName: dirName,
         relativePath: relativePath.orAppFolder,
+        externalVolumeName: externalVolumeName,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(

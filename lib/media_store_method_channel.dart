@@ -23,6 +23,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required DirType dirType,
     required DirName dirName,
     required String relativePath,
+    String? externalVolumeName,
   }) async {
     final status = await methodChannel.invokeMethod<bool>('saveFile', {
       "tempFilePath": tempFilePath,
@@ -30,6 +31,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "externalVolumeName": externalVolumeName,
     });
     return status ?? false;
   }
