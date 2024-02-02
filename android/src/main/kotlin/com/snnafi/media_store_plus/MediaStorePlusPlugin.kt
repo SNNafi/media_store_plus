@@ -90,7 +90,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 call.argument("fileName")!!,
                 call.argument("appFolder")!!,
                 call.argument("dirType")!!,
-                call.argument("dirName")!!
+                call.argument("dirName")!!,
+                call.argument("externalVolumeName"),
             )
             if (uri != null) {
                 result.success(uri.toString().trim())
@@ -178,10 +179,11 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         appFolder: String,
         dirType: Int,
         dirName: String,
-        externalVolumeName: String,
+        externalVolumeNameArg: String,
         id3v2Tags: Map<String, String>?,
     ) {
         try {
+            externalVolumeName = externalVolumeNameArg
             createOrUpdateFile(path, name, appFolder, dirType, dirName, externalVolumeName,id3v2Tags)
             File(tempFilePath).delete()
             result.success(true)
@@ -629,7 +631,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         name: String,
         appFolder: String,
         dirType: Int,
-        dirName: String
+        dirName: String,
+        externalVolumeName: String?,
     ) {
 
         fileName = name
@@ -638,7 +641,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         Log.d("DirName", dirName)
 
         try {
-            val uri: Uri? = getUriFromDisplayName(name, appFolder, dirType, dirName)
+            val uri: Uri? = getUriFromDisplayName(name, appFolder, dirType, dirName, externalVolumeName)
             if (uri != null) {
                 val contentResolver: ContentResolver =
                     activity!!.applicationContext.contentResolver
@@ -713,6 +716,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     appFolder,
                     dirType,
                     dirName,
+                    externalVolumeName!!,
                     id3v2Tags,
                 )
             } else {
@@ -809,7 +813,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     fileName,
                     appFolder,
                     dirType,
-                    dirName
+                    dirName,
+                    externalVolumeName,
                 )
             } else {
                 result.success(false)
