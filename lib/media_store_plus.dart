@@ -57,10 +57,11 @@ class MediaStore {
     required DirType dirType,
     required DirName dirName,
     String? relativePath,
-    externalVolumeName,
+    String? externalVolumeName,
+    Map<String, String>? id3v2Tags,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -75,6 +76,7 @@ class MediaStore {
         dirName: dirName,
         relativePath: relativePath.orAppFolder,
         externalVolumeName: externalVolumeName,
+        id3v2Tags: id3v2Tags,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(
@@ -84,7 +86,7 @@ class MediaStore {
 
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
-      File file = await tempFile.copy(directory.path + "/" + fileName);
+      File file = await tempFile.copy("${directory.path}/$fileName");
       return await file.exists();
     }
   }
@@ -105,7 +107,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -121,7 +123,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       if ((await file.exists())) {
         await file.delete();
       }
@@ -151,7 +153,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -167,7 +169,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       return await MediaStorePlatform.instance
           .getUriFromFilePath(path: file.path);
     }
@@ -195,7 +197,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -212,7 +214,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       final uri =
           await MediaStorePlatform.instance.getUriFromFilePath(path: file.path);
       return uri != null;
@@ -301,7 +303,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -318,7 +320,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();
     }

@@ -28,6 +28,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     required DirName dirName,
     required String relativePath,
     String? externalVolumeName,
+    Map<String, String>? id3v2Tags,
   }) {
     throw UnimplementedError('saveFile() has not been implemented.');
   }

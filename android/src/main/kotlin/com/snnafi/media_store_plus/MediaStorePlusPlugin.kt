@@ -9,12 +9,15 @@ import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import androidx.documentfile.provider.DocumentFile
+import com.mpatric.mp3agic.ID3v24Tag
+import com.mpatric.mp3agic.Mp3File
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -26,6 +29,7 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.*
 
 
@@ -39,7 +43,7 @@ fun String.capitalized(): String {
 
 /** MediaStorePlusPlugin */
 class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
-        PluginRegistry.ActivityResultListener {
+    PluginRegistry.ActivityResultListener {
 
     private var activity: Activity? = null
     private lateinit var channel: MethodChannel
@@ -52,7 +56,9 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private lateinit var dirName: String
     private lateinit var appFolder: String
     private var externalVolumeName: String? = null
-
+    private lateinit var folderName: String
+    private var id3v2Tags: Map<String,String>? = null
+    val TAG = "[MediaStorage+]"
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "media_store_plus")
@@ -60,31 +66,33 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+        Log.d(TAG,"call.method: ${call.method}")
         this.result = result
         if (call.method == "getPlatformSDKInt") {
             result.success(Build.VERSION.SDK_INT)
-        } else if (call.method == "saveFile") {
+                    } else if (call.method == "saveFile") {
             saveFile(
-                    Uri.parse(call.argument("tempFilePath")!!).path!!,
-                    call.argument("fileName")!!,
-                    call.argument("appFolder")!!,
-                    call.argument("dirType")!!,
-                    call.argument("dirName")!!,
-                    call.argument("externalVolumeName"),
+                Uri.parse(call.argument("tempFilePath")!!).path!!,
+                call.argument("fileName")!!,
+                call.argument("appFolder")!!,
+                call.argument("dirType")!!,
+                call.argument("dirName")!!,
+                call.argument("externalVolumeName"),
+                call.argument("id3v2Tags"),
             )
         } else if (call.method == "deleteFile") {
             deleteFile(
-                    call.argument("fileName")!!,
-                    call.argument("appFolder")!!,
-                    call.argument("dirType")!!,
-                    call.argument("dirName")!!
+                call.argument("fileName")!!,
+                call.argument("appFolder")!!,
+                call.argument("dirType")!!,
+                call.argument("dirName")!!
             )
         } else if (call.method == "getFileUri") {
             val uri: Uri? = getUriFromDisplayName(
-                    call.argument("fileName")!!,
-                    call.argument("appFolder")!!,
-                    call.argument("dirType")!!,
-                    call.argument("dirName")!!
+                call.argument("fileName")!!,
+                call.argument("appFolder")!!,
+                call.argument("dirType")!!,
+                call.argument("dirName")!!
             )
             if (uri != null) {
                 result.success(uri.toString().trim())
@@ -97,47 +105,47 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             requestForAccess(Uri.parse(call.argument("initialRelativePath")!!).path!!)
         } else if (call.method == "editFile") {
             editFile(
-                    call.argument("contentUri")!!,
-                    Uri.parse(call.argument("tempFilePath")!!).path!!,
+                call.argument("contentUri")!!,
+                Uri.parse(call.argument("tempFilePath")!!).path!!,
             )
         } else if (call.method == "deleteFileUsingUri") {
             deleteFileUsingUri(
-                    call.argument("contentUri")!!,
+                call.argument("contentUri")!!,
             )
         } else if (call.method == "isFileDeletable") {
             result.success(
-                    isDeletable(
-                            call.argument("contentUri")!!,
-                    )
+                isDeletable(
+                    call.argument("contentUri")!!,
+                )
             )
         } else if (call.method == "isFileWritable") {
             result.success(
-                    isWritable(
-                            call.argument("contentUri")!!,
-                    )
+                isWritable(
+                    call.argument("contentUri")!!,
+                )
             )
         } else if (call.method == "readFile") {
             readFile(
-                    Uri.parse(call.argument("tempFilePath")!!).path!!,
-                    call.argument("fileName")!!,
-                    call.argument("appFolder")!!,
-                    call.argument("dirType")!!,
-                    call.argument("dirName")!!
+                Uri.parse(call.argument("tempFilePath")!!).path!!,
+                call.argument("fileName")!!,
+                call.argument("appFolder")!!,
+                call.argument("dirType")!!,
+                call.argument("dirName")!!
             )
         } else if (call.method == "readFileUsingUri") {
             readFileUsingUri(
-                    call.argument("contentUri")!!,
-                    Uri.parse(call.argument("tempFilePath")!!).path!!,
+                call.argument("contentUri")!!,
+                Uri.parse(call.argument("tempFilePath")!!).path!!,
             )
         } else if (call.method == "isFileUriExist") {
             result.success(
-                    isFileUriExist(
-                            call.argument("contentUri")!!,
-                    )
+                isFileUriExist(
+                    call.argument("contentUri")!!,
+                )
             )
         } else if (call.method == "getDocumentTree") {
             getFolderChildren(
-                    call.argument("contentUri")!!,
+                call.argument("contentUri")!!,
             )
         } else {
             result.notImplemented()
@@ -166,14 +174,49 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         activity = null
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun createDir(folderName: String){
+        try {
+
+        this.folderName = folderName
+        val contentValues = ContentValues()
+        contentValues.put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            "$relativePath$folderName"
+        )
+        val path =
+            activity!!.applicationContext.contentResolver.insert(getUriFromDirType(1), contentValues).toString()
+        val folder = File(path)
+        val isCreated = folder.exists()
+        if (!isCreated) {
+            folder.mkdirs()
+        }
+        } catch (e: Exception){
+            if (e is RecoverableSecurityException) {
+                val recoverableSecurityException = e as? RecoverableSecurityException
+                recoverableSecurityException?.let {
+                    val intentSender =
+                        recoverableSecurityException.userAction.actionIntent.intentSender
+                    intentSender.let {
+                        activity!!.startIntentSenderForResult(
+                            intentSender, 997, null, 0, 0, 0, null
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveFile(
-            path: String,
-            name: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String,
-            externalVolumeName: String?
+        path: String,
+        name: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String,
+        externalVolumeName: String?,
+        id3v2Tags: Map<String,String>?
     ) {
         try {
             this.fileName = name
@@ -182,7 +225,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             this.dirType = dirType
             this.dirName = dirName
             this.externalVolumeName = externalVolumeName
-            createOrUpdateFile(path, name, appFolder, dirType, dirName, externalVolumeName)
+            createOrUpdateFile(path, name, appFolder, dirType, dirName, id3v2Tags)
             File(tempFilePath).delete()
             result.success(true)
 
@@ -191,10 +234,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 990, null, 0, 0, 0, null
+                            intentSender, 990, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -205,10 +248,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun deleteFile(
-            name: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String
+        name: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String
     ) {
         try {
             this.fileName = name
@@ -217,10 +260,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             this.dirType = dirType
             this.dirName = dirName
             val status: Boolean = deleteFileUsingDisplayName(
-                    name,
-                    appFolder,
-                    dirType,
-                    dirName
+                name,
+                appFolder,
+                dirType,
+                dirName
             )
             result.success(status)
         } catch (e: Exception) {
@@ -228,10 +271,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 991, null, 0, 0, 0, null
+                            intentSender, 991, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -240,40 +283,95 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun defineVolume(): String {
+        return if (externalVolumeName != null) {
+            MediaStore.getExternalVolumeNames(activity!!.applicationContext).find { it.lowercase() == externalVolumeName!!.lowercase() } ?: MediaStore.VOLUME_EXTERNAL_PRIMARY
+        } else {
+            MediaStore.VOLUME_EXTERNAL_PRIMARY
+        }
+    }
+    private fun fileExists(uri: Uri?) : Boolean{
+        val isExist = try {
+            val i= uri?.let { activity!!.applicationContext.contentResolver.openInputStream(it) }
+            i != null
+        }
+        catch (e: IOException) {
+            e.printStackTrace()
+            false
+        }
+        return isExist
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun saveId3(file: String, id3v2Tags: Map<String,String>?) {
+
+        if ( id3v2Tags != null) {
+            try {
+                val mp3File = Mp3File(file)
+
+                val id3v24Tag = ID3v24Tag()
+                id3v24Tag.title = id3v2Tags["title"]
+                id3v24Tag.comment = id3v2Tags["comment"]
+                id3v24Tag.album = id3v2Tags["album"]
+                id3v24Tag.artist = id3v2Tags["artist"]
+                id3v24Tag.url = java.lang.String.format(
+                    "https://www.suamusica.com.br/perfil/%s?playlistId=%s&albumId=%s&musicId=%s",
+                    id3v2Tags["artistId"],
+                    id3v2Tags["playlistId"],
+                    id3v2Tags["albumId"],
+                    id3v2Tags["musicId"]
+                )
+                mp3File.id3v2Tag = id3v24Tag
+                val newFilename = "$file.tmp"
+                mp3File.save(newFilename)
+
+                val from = File(newFilename)
+                from.renameTo(File(file))
+
+                Log.i(TAG, "Successfully set ID3v2 tags")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to set ID3v2 tags", e)
+            }
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun getUriFromDirType(dirType: Int) : Uri {
+        return when (dirType) {
+            0 -> MediaStore.Images.Media.getContentUri(defineVolume())
+            1 -> MediaStore.Audio.Media.getContentUri(defineVolume())
+            2 -> MediaStore.Video.Media.getContentUri(defineVolume())
+            else -> MediaStore.Downloads.getContentUri(defineVolume())
+        }
+
+    }
+
+   private val relativePath: String = if (appFolder.trim().isEmpty()) {
+        dirName
+    } else {
+        dirName + File.separator + appFolder
+    }
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun createOrUpdateFile(
-            path: String,
-            name: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String,
-            externalVolumeName: String?
+        path: String,
+        name: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String,
+        id3v2Tags: Map<String,String>?
     ) {
+        saveId3(path,id3v2Tags)
         // { photo, music, video, download }
-        Log.d("DirName", dirName)
+        Log.d(TAG, "DirName $dirName")
 
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName;
-        } else {
-            relativePath = dirName + File.separator + appFolder;
-        }
 
-        val collection: Uri
-        if (dirType == 0) {
-            collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else if (dirType == 1) {
-            collection = if (externalVolumeName != null) {
-                MediaStore.Audio.Media.getContentUri(MediaStore.getExternalVolumeNames(activity!!.applicationContext).find { it.lowercase()  == externalVolumeName.lowercase()   })
-            } else {
-                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            }
-        } else if (dirType == 2) {
-            collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        }
+
         deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
@@ -284,7 +382,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
             val resolver = activity!!.applicationContext.contentResolver
-            val uri = resolver.insert(collection, values)!!
+            val uri = resolver.insert(getUriFromDirType(dirType), values)!!
 
             resolver.openOutputStream(uri).use { os ->
                 File(path).inputStream().use { it.copyTo(os!!) }
@@ -294,35 +392,30 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             values.put(MediaStore.Audio.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
 
-            Log.d("saveFile", name)
+            Log.d(TAG, "saveFile $name")
+
         }
-    }
+            }
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @kotlin.jvm.Throws
     private fun deleteFileUsingDisplayName(
-            displayName: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String
+        displayName: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String
     ): Boolean {
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName + File.separator;
-        } else {
-            relativePath = dirName + File.separator + appFolder + File.separator;
-        }
         val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName)
-        Log.d("DisplayName $displayName", uri.toString())
+        Log.d(TAG,"DisplayName $displayName $uri")
         if (uri != null) {
-            val resolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+            val resolver: ContentResolver = activity!!.applicationContext.contentResolver
             val selectionArgs =
-                    arrayOf(displayName, relativePath)
+                arrayOf(displayName, relativePath)
             resolver.delete(
-                    uri,
-                    MediaStore.Audio.Media.DISPLAY_NAME + " =?  AND " + MediaStore.Audio.Media.RELATIVE_PATH + " =? ",
-                    selectionArgs
+                uri,
+                MediaStore.Audio.Media.DISPLAY_NAME + " =?  AND " + MediaStore.Audio.Media.RELATIVE_PATH + " =? ",
+                selectionArgs
             )
             Log.d("deleteFile", displayName)
             return true
@@ -332,47 +425,38 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
     @kotlin.jvm.Throws
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun getUriFromDisplayName(
-            displayName: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String
+        displayName: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String,
     ): Uri? {
-        val uri: Uri
-        if (dirType == 0) {
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        } else if (dirType == 1) {
-            uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        } else if (dirType == 2) {
-            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+
+        val uri = getUriFromDirType(dirType)
+
+        val relativePath: String = if (appFolder.trim().isEmpty()) {
+            dirName + File.separator
         } else {
-            uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            dirName + File.separator + appFolder + File.separator
         }
 
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName + File.separator;
-        } else {
-            relativePath = dirName + File.separator + appFolder + File.separator;
-        }
-
-        val projection: Array<String>
-        projection = arrayOf(MediaStore.MediaColumns._ID)
+        val projection: Array<String> = arrayOf(MediaStore.MediaColumns._ID)
         val selectionArgs =
-                arrayOf(displayName, relativePath)
-        val cursor: Cursor = activity!!.applicationContext.getContentResolver().query(
-                uri,
-                projection,
-                MediaStore.Audio.Media.DISPLAY_NAME + " =?  AND " + MediaStore.Audio.Media.RELATIVE_PATH + " =? ",
-                selectionArgs,
-                null
+            arrayOf(displayName, relativePath)
+        val cursor: Cursor = activity!!.applicationContext.contentResolver.query(
+            uri,
+            projection,
+            MediaStore.Audio.Media.DISPLAY_NAME + " =?  AND " + MediaStore.Audio.Media.RELATIVE_PATH + " =? ",
+            selectionArgs,
+            null
         )!!
         cursor.moveToFirst()
         return if (cursor.count > 0) {
             val columnIndex: Int = cursor.getColumnIndex(projection[0])
             val fileId: Long = cursor.getLong(columnIndex)
             cursor.close()
-            Uri.parse(uri.toString() + "/" + fileId)
+            Uri.parse("$uri/$fileId")
         } else {
             null
         }
@@ -382,9 +466,9 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun uriFromFilePath(path: String): String? {
         try {
             MediaScannerConnection.scanFile(
-                    activity!!.applicationContext,
-                    arrayOf(File(path).absolutePath),
-                    null
+                activity!!.applicationContext,
+                arrayOf(File(path).absolutePath),
+                null
             ) { _, uri ->
                 Log.d("uriFromFilePath", uri?.toString().toString())
                 result.success(uri?.toString()?.trim())
@@ -411,7 +495,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 // Optionally, specify a URI for the directory that should be opened in
                 // the system file picker when it loads.
                 var uriroot =
-                        getParcelableExtra<Uri>("android.provider.extra.INITIAL_URI")    // get system root uri
+                    getParcelableExtra<Uri>("android.provider.extra.INITIAL_URI")    // get system root uri
                 var scheme = uriroot.toString()
                 Log.d("Debug", "INITIAL_URI scheme: $scheme")
                 scheme = scheme.replace("/root/", "/document/")
@@ -420,8 +504,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 // give changed uri to Intent
                 Log.d("requestForAccess", "uri: $uriroot")
                 putExtra(
-                        DocumentsContract.EXTRA_INITIAL_URI,
-                        uriroot
+                    DocumentsContract.EXTRA_INITIAL_URI,
+                    uriroot
                 )
             }
         }
@@ -435,7 +519,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         val fileUri = Uri.parse(uriString)
         try {
             val contentResolver: ContentResolver =
-                    activity!!.applicationContext.getContentResolver()
+                activity!!.applicationContext.contentResolver
             contentResolver.openFileDescriptor(fileUri, "w")?.use {
                 FileOutputStream(it.fileDescriptor).use { os ->
                     File(path).inputStream().use { it.copyTo(os) }
@@ -448,10 +532,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 993, null, 0, 0, 0, null
+                            intentSender, 993, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -462,7 +546,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun deleteFileUsingUri(uriString: String) {
         this.uriString = uriString
         val fileUri = Uri.parse(uriString)
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         try {
             DocumentsContract.deleteDocument(contentResolver, fileUri)
             result.success(true)
@@ -471,10 +555,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 994, null, 0, 0, 0, null
+                            intentSender, 994, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -488,13 +572,13 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return false
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor? = contentResolver.query(
-                uri,
-                arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
-                null,
-                null,
-                null
+            uri,
+            arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+            null,
+            null,
+            null
         )
 
         val flags: Int = cursor?.use {
@@ -514,13 +598,13 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return false
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor? = contentResolver.query(
-                uri,
-                arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
-                null,
-                null,
-                null
+            uri,
+            arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+            null,
+            null,
+            null
         )
 
         val flags: Int = cursor?.use {
@@ -540,13 +624,13 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return null
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor = contentResolver.query(
-                uri,
-                arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
-                null,
-                null,
-                null
+            uri,
+            arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
+            null,
+            null,
+            null
         )!!
 
         cursor.moveToFirst()
@@ -566,7 +650,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         val fileUri = Uri.parse(uriString)
         try {
             val contentResolver: ContentResolver =
-                    activity!!.applicationContext.getContentResolver()
+                activity!!.applicationContext.contentResolver
             contentResolver.openInputStream(fileUri)?.use { inputStream ->
                 File(path).outputStream().use {
                     inputStream.copyTo(it)
@@ -578,10 +662,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 995, null, 0, 0, 0, null
+                            intentSender, 995, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -589,12 +673,12 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
     }
 
-    private fun readFile(
-            path: String,
-            name: String,
-            appFolder: String,
-            dirType: Int,
-            dirName: String
+        private fun readFile(
+        path: String,
+        name: String,
+        appFolder: String,
+        dirType: Int,
+        dirName: String
     ) {
 
         this.fileName = name
@@ -609,7 +693,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             val uri: Uri? = getUriFromDisplayName(name, appFolder, dirType, dirName)
             if (uri != null) {
                 val contentResolver: ContentResolver =
-                        activity!!.applicationContext.getContentResolver()
+                    activity!!.applicationContext.contentResolver
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     File(path).outputStream().use {
                         inputStream.copyTo(it)
@@ -624,10 +708,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
                     val intentSender =
-                            recoverableSecurityException.userAction.actionIntent.intentSender
+                        recoverableSecurityException.userAction.actionIntent.intentSender
                     intentSender.let {
                         activity!!.startIntentSenderForResult(
-                                intentSender, 996, null, 0, 0, 0, null
+                            intentSender, 996, null, 0, 0, 0, null
                         )
                     }
                 }
@@ -637,31 +721,31 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     private fun isFileUriExist(uriString: String): Boolean {
         val fileUri = Uri.parse(uriString)
-        return DocumentsContract.isDocumentUri(activity!!.applicationContext, fileUri);
+        return DocumentsContract.isDocumentUri(activity!!.applicationContext, fileUri)
     }
 
     private fun getFolderChildren(uriString: String) {
         try {
             val directoryUri = Uri.parse(uriString)
             val documentsTree =
-                    DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
+                DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
             val children: MutableList<DocumentInfo> = mutableListOf()
             documentsTree?.let {
                 val childDocuments = documentsTree.listFiles()
                 for (childDocument in childDocuments) {
                     Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
                     children.add(
-                            DocumentInfo(
-                                    childDocument.name,
-                                    childDocument.uri.toString().trim(),
-                                    childDocument.isVirtual,
-                                    childDocument.isDirectory,
-                                    childDocument.type,
-                                    childDocument.lastModified(),
-                                    childDocument.length(),
-                                    isWritable(childDocument.uri.toString()),
-                                    isDeletable(childDocument.uri.toString()),
-                            )
+                        DocumentInfo(
+                            childDocument.name,
+                            childDocument.uri.toString().trim(),
+                            childDocument.isVirtual,
+                            childDocument.isDirectory,
+                            childDocument.type,
+                            childDocument.lastModified(),
+                            childDocument.length(),
+                            isWritable(childDocument.uri.toString()),
+                            isDeletable(childDocument.uri.toString()),
+                        )
                     )
                 }
             }
@@ -676,12 +760,13 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         if (requestCode == 990) {
             if (resultCode == Activity.RESULT_OK) {
                 saveFile(
-                        tempFilePath,
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName,
-                        externalVolumeName,
+                    tempFilePath,
+                    fileName,
+                    appFolder,
+                    dirType,
+                    dirName,
+                    externalVolumeName,
+                    id3v2Tags,
                 )
             } else {
                 result.success(false)
@@ -690,10 +775,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         } else if (requestCode == 991) {
             if (resultCode == Activity.RESULT_OK) {
                 deleteFile(
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName
+                    fileName,
+                    appFolder,
+                    dirType,
+                    dirName
                 )
             } else {
                 result.success(false)
@@ -705,7 +790,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 var documentTreeInfo: DocumentTreeInfo? = null
                 val uriList: MutableList<String> = mutableListOf()
                 data?.data?.also { directoryUri ->
-                    Log.d("requestForAccess: G", directoryUri.toString())
+                    Log.d(TAG,"requestForAccess: G: $directoryUri")
 
                     uriList.add(directoryUri.toString().trim())
 
@@ -716,7 +801,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
 
                     val documentsTree =
-                            DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
+                        DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
 
                     val children: MutableList<DocumentInfo> = mutableListOf()
                     documentsTree?.let {
@@ -724,17 +809,17 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                         for (childDocument in childDocuments) {
                             Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
                             children.add(
-                                    DocumentInfo(
-                                            childDocument.name,
-                                            childDocument.uri.toString().trim(),
-                                            childDocument.isVirtual,
-                                            childDocument.isDirectory,
-                                            childDocument.type,
-                                            childDocument.lastModified(),
-                                            childDocument.length(),
-                                            null,
-                                            null,
-                                    )
+                                DocumentInfo(
+                                    childDocument.name,
+                                    childDocument.uri.toString().trim(),
+                                    childDocument.isVirtual,
+                                    childDocument.isDirectory,
+                                    childDocument.type,
+                                    childDocument.lastModified(),
+                                    childDocument.length(),
+                                    null,
+                                    null,
+                                )
                             )
                             uriList.add(childDocument.uri.toString().trim())
                         }
@@ -773,17 +858,17 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         } else if (requestCode == 996) {
             if (resultCode == Activity.RESULT_OK) {
                 readFile(
-                        tempFilePath,
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName
+                    tempFilePath,
+                    fileName,
+                    appFolder,
+                    dirType,
+                    dirName
                 )
             } else {
                 result.success(false)
             }
             return true
-        }
+                }
         return false
-    }
 }
+    }
