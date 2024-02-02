@@ -75,6 +75,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 call.argument("appFolder")!!,
                 call.argument("dirType")!!,
                 call.argument("dirName")!!,
+                call.argument("externalVolumeName")!!,
                 call.argument("id3v2Tags"),
             )
         } else if (call.method == "deleteFile") {
@@ -171,55 +172,17 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         activity = null
     }
 
-
-    private fun createDir(folderName: String) {
-        try {
-             val relativePath: String = if (appFolder.trim().isEmpty()) {
-                dirName
-            } else {
-                dirName + File.separator + appFolder
-            }
-            val contentValues = ContentValues()
-            contentValues.put(
-                MediaStore.MediaColumns.RELATIVE_PATH,
-                "$relativePath$folderName"
-            )
-            val path =
-                activity!!.applicationContext.contentResolver.insert(
-                    getUriFromDirType(1),
-                    contentValues
-                ).toString()
-            val folder = File(path)
-            val isCreated = folder.exists()
-            if (!isCreated) {
-                folder.mkdirs()
-            }
-        } catch (e: Exception) {
-            if (e is RecoverableSecurityException) {
-                val recoverableSecurityException = e as? RecoverableSecurityException
-                recoverableSecurityException?.let {
-                    val intentSender =
-                        recoverableSecurityException.userAction.actionIntent.intentSender
-                    intentSender.let {
-                        activity!!.startIntentSenderForResult(
-                            intentSender, 997, null, 0, 0, 0, null
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     private fun saveFile(
         path: String,
         name: String,
         appFolder: String,
         dirType: Int,
         dirName: String,
+        externalVolumeName: String,
         id3v2Tags: Map<String, String>?,
     ) {
         try {
-            createOrUpdateFile(path, name, appFolder, dirType, dirName, id3v2Tags)
+            createOrUpdateFile(path, name, appFolder, dirType, dirName, externalVolumeName,id3v2Tags)
             File(tempFilePath).delete()
             result.success(true)
 
@@ -273,10 +236,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
     }
 
-    private fun defineVolume(): String {
+    private fun defineVolume(externalVolumeName:String?): String {
         return if (externalVolumeName != null) {
             MediaStore.getExternalVolumeNames(activity!!.applicationContext)
-                .find { it.lowercase() == externalVolumeName!!.lowercase() }
+                .find { it.lowercase() == externalVolumeName.lowercase() }
                 ?: MediaStore.VOLUME_EXTERNAL_PRIMARY
         } else {
             MediaStore.VOLUME_EXTERNAL_PRIMARY
@@ -329,16 +292,15 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getUriFromDirType(dirType: Int): Uri {
+    private fun getUriFromDirType(dirType: Int,externalVolumeName: String?): Uri {
         return when (dirType) {
-            0 -> MediaStore.Images.Media.getContentUri(defineVolume())
-            1 -> MediaStore.Audio.Media.getContentUri(defineVolume())
-            2 -> MediaStore.Video.Media.getContentUri(defineVolume())
-            else -> MediaStore.Downloads.getContentUri(defineVolume())
+            0 -> MediaStore.Images.Media.getContentUri(defineVolume(externalVolumeName))
+            1 -> MediaStore.Audio.Media.getContentUri(defineVolume(externalVolumeName))
+            2 -> MediaStore.Video.Media.getContentUri(defineVolume(externalVolumeName))
+            else -> MediaStore.Downloads.getContentUri(defineVolume(externalVolumeName))
         }
 
     }
-
 
     private fun createOrUpdateFile(
         path: String,
@@ -346,6 +308,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         appFolder: String,
         dirType: Int,
         dirName: String,
+        externalVolumeName : String?,
         id3v2Tags: Map<String, String>?
     ) {
         saveId3(path, id3v2Tags)
@@ -358,7 +321,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             dirName + File.separator + appFolder
         }
 
-        deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
+        deleteFileUsingDisplayName(name, appFolder, dirType, dirName,externalVolumeName)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
@@ -368,7 +331,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
             val resolver = activity!!.applicationContext.contentResolver
-            val uri = resolver.insert(getUriFromDirType(dirType), values)!!
+            val uri = resolver.insert(getUriFromDirType(dirType,externalVolumeName), values)!!
 
             resolver.openOutputStream(uri).use { os ->
                 File(path).inputStream().use { it.copyTo(os!!) }
@@ -389,7 +352,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         displayName: String,
         appFolder: String,
         dirType: Int,
-        dirName: String
+        dirName: String,
+        externalVolumeName: String?,
     ): Boolean {
         val relativePath: String = if (appFolder.trim().isEmpty()) {
             dirName
@@ -420,9 +384,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         appFolder: String,
         dirType: Int,
         dirName: String,
+        externalVolumeName:String?,
     ): Uri? {
 
-        val uri = getUriFromDirType(dirType)
+        val uri = getUriFromDirType(dirType,externalVolumeName)
 
         val relativePath: String = if (appFolder.trim().isEmpty()) {
             dirName + File.separator
