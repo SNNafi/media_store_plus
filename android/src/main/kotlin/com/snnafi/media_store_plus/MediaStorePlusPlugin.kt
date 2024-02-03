@@ -129,7 +129,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 call.argument("fileName")!!,
                 call.argument("appFolder")!!,
                 call.argument("dirType")!!,
-                call.argument("dirName")!!
+                call.argument("dirName")!!,
+                call.argument("externalVolumeName")
             )
         } else if (call.method == "readFileUsingUri") {
             readFileUsingUri(
@@ -218,7 +219,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 name,
                 appFolder,
                 dirType,
-                dirName
+                dirName,
+                null
             )
             result.success(status)
         } catch (e: Exception) {
@@ -362,7 +364,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         } else {
             dirName + File.separator + appFolder
         }
-        val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName)
+        val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName,externalVolumeName)
         Log.d(TAG, "DisplayName $displayName $uri")
         if (uri != null) {
             val resolver: ContentResolver = activity!!.applicationContext.contentResolver
@@ -708,6 +710,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        Log.d(TAG,"onActivityResult: $resultCode, $resultCode")
         if (requestCode == 990) {
             if (resultCode == Activity.RESULT_OK) {
                 saveFile(
