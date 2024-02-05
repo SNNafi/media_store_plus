@@ -79,8 +79,13 @@ class MediaStore {
         id3v2Tags: id3v2Tags,
       );
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+          externalVolume: externalVolumeName,
+        ),
+      );
 
       await Directory(directory.path).create(recursive: true);
 

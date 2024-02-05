@@ -350,12 +350,12 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         externalVolumeName: String?,
     ): Boolean {
         val relativePath: String = if (appFolder.trim().isEmpty()) {
-            dirName
+            dirName + File.separator
         } else {
-            dirName + File.separator + appFolder
+            dirName + File.separator + appFolder + File.separator
         }
         val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName,externalVolumeName)
-        Log.d(TAG, "DisplayName $displayName $uri")
+        Log.d(TAG, "deleteFileUsingDisplayName DisplayName: $displayName URI:$uri")
         if (uri != null) {
             val resolver: ContentResolver = activity!!.applicationContext.contentResolver
             val selectionArgs =
@@ -400,10 +400,12 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             null
         )!!
         cursor.moveToFirst()
+        Log.d(TAG, "getUriFromDisplayName: $uri")
         return if (cursor.count > 0) {
             val columnIndex: Int = cursor.getColumnIndex(projection[0])
             val fileId: Long = cursor.getLong(columnIndex)
             cursor.close()
+            Log.d(TAG, "getUriFromDisplayName2: $uri/$fileId")
             Uri.parse("$uri/$fileId")
         } else {
             null
