@@ -50,16 +50,10 @@ extension DirTypeVale on DirType {
     checkDirTypeAndName(dirType: this, dirName: dirName);
     final segment = relativePath.trim();
 
-    String volume = "storage/emulated/0";
-
-    if (externalVolume != null) {
-      volume = externalVolume;
-    }
-
     if (segment == FilePath.root) {
-      return "/$volume/${dirName.folder}";
+      return "/storage/emulated/0/${dirName.folder}";
     }
-    return "/$volume/${dirName.folder}/$segment";
+    return "/storage/emulated/0/${dirName.folder}/$segment";
   }
 }
 

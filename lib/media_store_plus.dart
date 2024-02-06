@@ -59,6 +59,7 @@ class MediaStore {
     String? relativePath,
     String? externalVolumeName,
     Map<String, String>? id3v2Tags,
+    String? sdCardPath,
   }) async {
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
@@ -79,13 +80,18 @@ class MediaStore {
         id3v2Tags: id3v2Tags,
       );
     } else {
-      Directory directory = Directory(
-        dirType.fullPath(
-          relativePath: relativePath.orAppFolder,
-          dirName: dirName,
-          externalVolume: externalVolumeName,
-        ),
-      );
+      Directory directory;
+      if (sdCardPath != null && externalVolumeName != null) {
+        directory = Directory("$sdCardPath/${dirName.folder}/$relativePath");
+      } else {
+        directory = Directory(
+          dirType.fullPath(
+            relativePath: relativePath.orAppFolder,
+            dirName: dirName,
+            externalVolume: externalVolumeName,
+          ),
+        );
+      }
 
       await Directory(directory.path).create(recursive: true);
 

@@ -9,6 +9,7 @@ import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
@@ -28,7 +29,6 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 
 
@@ -79,7 +79,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 call.argument("externalVolumeName"),
                 call.argument("id3v2Tags"),
             )
-        } else if (call.method == "deleteFile") {
+                } else if (call.method == "deleteFile") {
             deleteFile(
                 call.argument("fileName")!!,
                 call.argument("appFolder")!!,
@@ -187,7 +187,15 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         tempFilePath = path
         try {
             externalVolumeName = externalVolumeNameArg
-            createOrUpdateFile(path, name, appFolder, dirType, dirName, externalVolumeName,id3v2Tags)
+            createOrUpdateFile(
+                path,
+                name,
+                appFolder,
+                dirType,
+                dirName,
+                externalVolumeName,
+                id3v2Tags
+            )
             File(path).delete()
             resultArg.success(true)
 
@@ -241,7 +249,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
     }
 
-    private fun defineVolume(externalVolumeName:String?): String {
+    private fun defineVolume(externalVolumeName: String?): String {
         return if (externalVolumeName != null) {
             MediaStore.getExternalVolumeNames(activity!!.applicationContext)
                 .find { it.lowercase() == externalVolumeName.lowercase() }
@@ -286,7 +294,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun getUriFromDirType(dirType: Int,externalVolumeName: String?): Uri {
+    private fun getUriFromDirType(dirType: Int, externalVolumeName: String?): Uri {
         return when (dirType) {
             0 -> MediaStore.Images.Media.getContentUri(defineVolume(externalVolumeName))
             1 -> MediaStore.Audio.Media.getContentUri(defineVolume(externalVolumeName))
@@ -302,20 +310,20 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         appFolder: String,
         dirType: Int,
         dirName: String,
-        externalVolumeName : String?,
+        externalVolumeName: String?,
         id3v2Tags: Map<String, String>?
     ) {
         saveId3(path, id3v2Tags)
         // { photo, music, video, download }
         Log.d(TAG, "DirName $dirName")
 
-         val relativePath: String = if (appFolder.trim().isEmpty()) {
+        val relativePath: String = if (appFolder.trim().isEmpty()) {
             dirName
         } else {
             dirName + File.separator + appFolder
         }
 
-        deleteFileUsingDisplayName(name, appFolder, dirType, dirName,externalVolumeName)
+        deleteFileUsingDisplayName(name, appFolder, dirType, dirName, externalVolumeName)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
@@ -325,7 +333,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
 
             val resolver = activity!!.applicationContext.contentResolver
-            val uri = resolver.insert(getUriFromDirType(dirType,externalVolumeName), values)!!
+            val uri = resolver.insert(getUriFromDirType(dirType, externalVolumeName), values)!!
 
             resolver.openOutputStream(uri).use { os ->
                 File(path).inputStream().use { it.copyTo(os!!) }
@@ -354,7 +362,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         } else {
             dirName + File.separator + appFolder + File.separator
         }
-        val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName,externalVolumeName)
+        val uri: Uri? =
+            getUriFromDisplayName(displayName, appFolder, dirType, dirName, externalVolumeName)
         Log.d(TAG, "deleteFileUsingDisplayName DisplayName: $displayName URI:$uri")
         if (uri != null) {
             val resolver: ContentResolver = activity!!.applicationContext.contentResolver
@@ -378,10 +387,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         appFolder: String,
         dirType: Int,
         dirName: String,
-        externalVolumeName:String?,
+        externalVolumeName: String?,
     ): Uri? {
 
-        val uri = getUriFromDirType(dirType,externalVolumeName)
+        val uri = getUriFromDirType(dirType, externalVolumeName)
 
         val relativePath: String = if (appFolder.trim().isEmpty()) {
             dirName + File.separator
@@ -631,7 +640,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         fileName = name
         Log.d("DirName", dirName)
         try {
-            val uri: Uri? = getUriFromDisplayName(name, appFolder, dirType, dirName, externalVolumeName)
+            val uri: Uri? =
+                getUriFromDisplayName(name, appFolder, dirType, dirName, externalVolumeName)
             if (uri != null) {
                 val contentResolver: ContentResolver =
                     activity!!.applicationContext.contentResolver
@@ -698,7 +708,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        Log.d(TAG,"onActivityResult: $resultCode, $resultCode")
+        Log.d(TAG, "onActivityResult: $resultCode, $resultCode")
         if (requestCode == 990) {
             if (resultCode == Activity.RESULT_OK) {
                 saveFile(
