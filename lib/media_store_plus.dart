@@ -67,8 +67,8 @@ class MediaStore {
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
-
-    if (_sdkInt >= 29) {
+    //Android 11 or higher, we use MediaStore API
+    if (_sdkInt > 29) {
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       return await MediaStorePlatform.instance.saveFile(
         tempFilePath: tempFilePath,
