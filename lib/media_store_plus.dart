@@ -70,7 +70,7 @@ class MediaStore {
     if (_sdkInt >= 29) {
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       return await MediaStorePlatform.instance.saveFile(
-        tempFilePath: tempFilePath,
+        tempFilePath: tempFilePath.sanitize,
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
@@ -83,7 +83,7 @@ class MediaStore {
       await Directory(directory.path).create(recursive: true);
 
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
-      File tempFile = File(tempFilePath);
+      File tempFile = File(tempFilePath.sanitize);
       File file = await tempFile.copy("${directory.path}/$fileName");
       return file.uri.toString();
     }
@@ -243,9 +243,9 @@ class MediaStore {
   /// To use this method, first save the updated file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents from this path and edit it in the particularly location using [MediaStore].
   /// Then it will delete the temporary file.
-  Future<bool> editFile({required String uriString, required tempFilePath}) {
+  Future<bool> editFile({required String uriString, required String tempFilePath}) {
     return MediaStorePlatform.instance
-        .editFile(uriString: uriString, tempFilePath: tempFilePath);
+        .editFile(uriString: uriString, tempFilePath: tempFilePath.sanitize);
   }
 
   /// It will delete existing file using [Uri] from the given [uriString] if exist. Return `true` if deleted or return false
@@ -269,9 +269,9 @@ class MediaStore {
   /// To use this method, first create a new file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents to this temporary path to read directy by [File].
   Future<bool> readFileUsingUri(
-      {required String uriString, required tempFilePath}) {
+      {required String uriString, required String tempFilePath}) {
     return MediaStorePlatform.instance
-        .readFileUsingUri(uriString: uriString, tempFilePath: tempFilePath);
+        .readFileUsingUri(uriString: uriString, tempFilePath: tempFilePath.sanitize);
   }
 
   /// It will read the file if exists. Return `true` upon reading.
@@ -309,7 +309,7 @@ class MediaStore {
 
     if (_sdkInt >= 29) {
       return await MediaStorePlatform.instance.readFile(
-        tempFilePath: tempFilePath,
+        tempFilePath: tempFilePath.sanitize,
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
@@ -319,7 +319,7 @@ class MediaStore {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File("${directory.path}/$fileName");
-      File tempFile = await file.copy(tempFilePath);
+      File tempFile = await file.copy(tempFilePath.sanitize);
       return await tempFile.exists();
     }
   }

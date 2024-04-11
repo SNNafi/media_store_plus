@@ -35,7 +35,7 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Video Folder Example"),
+        title: const Text("Video Folder Example"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -44,7 +44,7 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("Video can be played here after saving"),
+              const Text("Video can be played here after saving"),
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
@@ -57,14 +57,14 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                     });
                   }
                 },
-                child: Text("Get File Uri"),
+                child: const Text("Get File Uri"),
               ),
               if (_fileUri.isNotEmpty)
                 Text.rich(
                   TextSpan(text: 'File Uri: ', children: [
                     TextSpan(
                         text: _fileUri,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
                   ]),
@@ -79,7 +79,7 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                     Directory directory =
                         await getApplicationSupportDirectory();
                     File tempFile =
-                        File(directory.path + "/" + "kaba_video.mp4");
+                        File("${directory.path}/kaba_video.mp4");
                     await (await rootBundle.load("assets/kaba_video.mp4"))
                         .writeToFile(tempFile);
                     final path = await mediaStorePlugin.saveFile(
@@ -100,11 +100,11 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                       _controller?.initialize();
                     }
                   },
-                  child: Text("Save Video"),
+                  child: const Text("Save Video"),
                 ),
               if (_isSavingTaskOngoing)
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                const Padding(
+                  padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 ),
               if (_videoAvailable)
@@ -129,7 +129,7 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                         ));
                       }
                     },
-                    child: Text("Delete")),
+                    child: const Text("Delete")),
               if (_videoAvailable)
                 Container(
                   width: 300,

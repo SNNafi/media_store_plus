@@ -32,7 +32,7 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Read Folder API 33 or Upper Example"),
+        title: const Text("Read Folder API 33 or Upper Example"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -41,7 +41,7 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("Image will be shown here after saving"),
+              const Text("Image will be shown here after saving"),
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
@@ -54,14 +54,14 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
                     });
                   }
                 },
-                child: Text("Get File Uri"),
+                child: const Text("Get File Uri"),
               ),
               if (_fileUri.isNotEmpty)
                 Text.rich(
                   TextSpan(text: 'File Uri: ', children: [
                     TextSpan(
                         text: _fileUri,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
                   ]),
@@ -76,7 +76,7 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
                     Directory directory =
                         await getApplicationSupportDirectory();
                     File tempFile =
-                        File(directory.path + "/" + "al_aqsa_mosque.jpeg");
+                        File("${directory.path}/al_aqsa_mosque.jpeg");
                     await (await rootBundle.load("assets/al_aqsa_mosque.jpeg"))
                         .writeToFile(tempFile);
                     final path = await mediaStorePlugin.saveFile(
@@ -89,11 +89,11 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
                       _imageAvailable = path != null;
                     });
                   },
-                  child: Text("Save Image"),
+                  child: const Text("Save Image"),
                 ),
               if (_isSavingTaskOngoing)
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                const Padding(
+                  padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 ),
               if (_imageAvailable)
@@ -116,7 +116,7 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
                         ));
                       }
                     },
-                    child: Text("Delete")),
+                    child: const Text("Delete")),
               if (_imageAvailable)
                 Image.file(
                   File(

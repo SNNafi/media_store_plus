@@ -48,7 +48,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("Audio can be played here after saving"),
+              const Text("Audio can be played here after saving"),
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
@@ -61,14 +61,14 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                     });
                   }
                 },
-                child: Text("Get File Uri"),
+                child: const Text("Get File Uri"),
               ),
               if (_fileUri.isNotEmpty)
                 Text.rich(
                   TextSpan(text: 'File Uri: ', children: [
                     TextSpan(
                         text: _fileUri,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
                   ]),
@@ -96,11 +96,11 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                       _audioAvailable = path != null;
                     });
                   },
-                  child: Text("Save Audio"),
+                  child: const Text("Save Audio"),
                 ),
               if (_isSavingTaskOngoing)
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                const Padding(
+                  padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 ),
               if (_audioAvailable)
@@ -125,7 +125,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                         ));
                       }
                     },
-                    child: Text("Delete")),
+                    child: const Text("Delete")),
               if (_audioAvailable)
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -143,12 +143,12 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                                 .path));
                           }
                         },
-                        child: Text("Play")),
+                        child: const Text("Play")),
                     ElevatedButton(
                         onPressed: () async {
                           player?.pause();
                         },
-                        child: Text("Pause")),
+                        child: const Text("Pause")),
                   ],
                 )
             ],

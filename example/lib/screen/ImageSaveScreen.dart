@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:media_store_plus/media_store_plus.dart';
@@ -21,7 +20,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
   bool _imageAvailable = false;
   String _fileUri = "";
 
-  String fileName = "al aqsa_mosque.jpeg";
+  String fileName = "al %aqsa_mosque.jpeg";
 
   /// set `null`to save in relativePath [MediaStore.appFolder]
   String? relativePath = "AnotherFolder";
@@ -36,7 +35,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Image Folder Example"),
+        title: const Text("Image Folder Example"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -45,7 +44,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text("Image will be shown here after saving"),
+              const Text("Image will be shown here after saving"),
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
@@ -60,14 +59,14 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                     });
                   }
                 },
-                child: Text("Get File Uri"),
+                child: const Text("Get File Uri"),
               ),
               if (_fileUri.isNotEmpty)
                 Text.rich(
                   TextSpan(text: 'File Uri: ', children: [
                     TextSpan(
                         text: _fileUri,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
                   ]),
@@ -96,11 +95,11 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                       _imageAvailable = path != null;
                     });
                   },
-                  child: Text("Save Image"),
+                  child: const Text("Save Image"),
                 ),
               if (_isSavingTaskOngoing)
-                Padding(
-                  padding: const EdgeInsets.all(20),
+                const Padding(
+                  padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(),
                 ),
               if (_imageAvailable)
@@ -125,7 +124,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                         ));
                       }
                     },
-                    child: Text("Delete")),
+                    child: const Text("Delete")),
               if (_imageAvailable)
                 Image.file(
                   getFile(
