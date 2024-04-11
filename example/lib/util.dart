@@ -12,10 +12,7 @@ String getPath({
   required DirType dirType,
   required DirName dirName,
 }) {
-  return dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName) +
-      "/" +
-      fileName;
+  return "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName)}/$fileName";
 }
 
 File getFile({
@@ -25,32 +22,32 @@ File getFile({
   required DirName dirName,
 }) {
   return File(
-    dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName) +
-        "/" +
-        fileName,
+    "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName)}/$fileName",
   );
 }
 
 extension ByteDataToFile on ByteData {
   Future<void> writeToFile(File file) async {
     final buffer = this.buffer;
-    await file.writeAsBytes(
-        buffer.asUint8List(this.offsetInBytes, this.lengthInBytes));
+    await file.writeAsBytes(buffer.asUint8List(offsetInBytes, lengthInBytes));
   }
 }
 
 // It will try to read or write first in the given folder.
 // if it is not accessible, it will request for permission for that folder then try again to read or write
-Future<bool> readOrWriteApiLevel33WithPermission(
-    {required String initialRelativePath,
+Future<String?> readOrWriteApiLevel33WithPermission(
+    {required String fileName,
+    required String initialRelativePath,
     required Function() operation}) async {
   try {
     await operation();
-    return true;
+    return '';
   } on FileSystemException catch (e) {
     print(e);
 
-    // To test this place a .txt file in that folder
+    StringBuffer buffer = StringBuffer();
+
+    // To test this place a fileName.txt file in that folder
     // request for read/write access for a folder in API level 33
     // Use this also get write access for a folder from API level 30
     final documentTree = await mediaStorePlugin.requestForAccess(
@@ -61,7 +58,7 @@ Future<bool> readOrWriteApiLevel33WithPermission(
           .first
           .uriString;
       print("Folder Uri ${documentTree.uri.toString()}");
-      print("File Uri ${uriString}");
+      print("File Uri $uriString");
       documentTree.children.forEach((doc) {
         print(doc);
       });
@@ -82,24 +79,28 @@ Future<bool> readOrWriteApiLevel33WithPermission(
           .then((value) => value == true ? print("Deletable") : print(""));
 
       // read file by uri
-      File tempFile = File(
-          (await getApplicationSupportDirectory()).path + "/" + "text.txt");
+      File tempFile =
+          File("${(await getApplicationSupportDirectory()).path}/$fileName");
       bool status = await mediaStorePlugin.readFileUsingUri(
           uriString: uriString, tempFilePath: tempFile.path);
       if (status) {
-        print((await tempFile.readAsString()));
+        final text = await tempFile.readAsString();
+        print(text);
+        buffer.writeln('\n\nText Content Before Edit: $text');
       }
 
       // edit file by uri
-      await tempFile
-          .writeAsString("EDITED: You are reading from API level 33.");
+      await tempFile.writeAsString(
+          "EDITED: You are reading from API level 33/33+.\nFile Name: $fileName");
       await mediaStorePlugin.editFile(
           uriString: uriString, tempFilePath: tempFile.path);
 
       status = await mediaStorePlugin.readFileUsingUri(
           uriString: uriString, tempFilePath: tempFile.path);
       if (status) {
-        print((await tempFile.readAsString()));
+        final text = await tempFile.readAsString();
+        print(text);
+        buffer.writeln('\n\nText Content After Edit: $text');
       }
 
       // delete file by uri
@@ -114,9 +115,9 @@ Future<bool> readOrWriteApiLevel33WithPermission(
             .first
             .uriString;
         print("2 Folder Uri ${docTree.uri.toString()}");
-        print("2 File Uri ${uriString}");
+        print("2 File Uri $uriString");
         docTree.children.forEach((doc) {
-          print("2 ${doc}");
+          print("2 $doc");
         });
 
         // check if file exists by uri
@@ -135,8 +136,8 @@ Future<bool> readOrWriteApiLevel33WithPermission(
             .then((value) => value == true ? print("Deletable") : print(""));
 
         // read file by uri
-        File tempFile = File(
-            (await getApplicationSupportDirectory()).path + "/" + "text.txt");
+        File tempFile =
+            File("${(await getApplicationSupportDirectory()).path}/$fileName");
         bool status = await mediaStorePlugin.readFileUsingUri(
             uriString: uriString, tempFilePath: tempFile.path);
         if (status) {
@@ -144,8 +145,8 @@ Future<bool> readOrWriteApiLevel33WithPermission(
         }
 
         // edit file by uri
-        await tempFile
-            .writeAsString("EDITED: You are reading from API level 33.");
+        await tempFile.writeAsString(
+            "EDITED: You are reading from API level 33/33+.\nFile Name: $fileName");
         await mediaStorePlugin.editFile(
             uriString: uriString, tempFilePath: tempFile.path);
 
@@ -160,10 +161,10 @@ Future<bool> readOrWriteApiLevel33WithPermission(
       }
     }
 
-    return true;
+    return buffer.toString();
   } catch (e) {
     print(e);
-    return false;
+    return null;
   }
-  return false;
+  return null;
 }

@@ -1,6 +1,5 @@
-import 'dart:io';
+import 'dart:io' show Directory, File;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:media_store_plus/media_store_plus.dart';
@@ -18,14 +17,14 @@ class ReadWriteScreenAPI33OrUp extends StatefulWidget {
 }
 
 class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
-  bool _isSavingTaskOngoing = false;
-  bool _imageAvailable = false;
+  bool _isTestDone = false;
   String _fileUri = "";
+  final String fileName = 'te  %st.txt';
+  String _text = '';
 
   @override
   void initState() {
     super.initState();
-    checkIfExist();
   }
 
   @override
@@ -38,93 +37,28 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
         padding: const EdgeInsets.all(20),
         child: Center(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text("Image will be shown here after saving"),
               ElevatedButton(
                 onPressed: () async {
-                  final Uri? uri = await mediaStorePlugin.getFileUri(
-                      fileName: "al_aqsa_mosque.jpeg",
-                      dirType: DirType.photo,
-                      dirName: DirType.photo.defaults);
-                  if (uri != null) {
-                    setState(() {
-                      _fileUri = uri.path;
-                    });
-                  }
+                  testReadWriteInApi33Plus();
                 },
-                child: const Text("Get File Uri"),
+                child: const Text("Test"),
               ),
-              if (_fileUri.isNotEmpty)
-                Text.rich(
-                  TextSpan(text: 'File Uri: ', children: [
+              if (_isTestDone) ...<Widget>[
+                Text(_text),
+                const Text.rich(
+                  TextSpan(text: 'Check ', children: [
                     TextSpan(
-                        text: _fileUri,
-                        style: const TextStyle(
+                        text: 'console',
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                         )),
+                    TextSpan(text: ' for detailed info')
                   ]),
-                ),
-              if (!_isSavingTaskOngoing)
-                ElevatedButton(
-                  onPressed: () async {
-                    setState(() {
-                      _isSavingTaskOngoing = true;
-                    });
-
-                    Directory directory =
-                        await getApplicationSupportDirectory();
-                    File tempFile =
-                        File("${directory.path}/al_aqsa_mosque.jpeg");
-                    await (await rootBundle.load("assets/al_aqsa_mosque.jpeg"))
-                        .writeToFile(tempFile);
-                    final path = await mediaStorePlugin.saveFile(
-                        tempFilePath: tempFile.path,
-                        dirType: DirType.photo,
-                        dirName: DirType.photo.defaults);
-                    print(path);
-                    setState(() {
-                      _isSavingTaskOngoing = false;
-                      _imageAvailable = path != null;
-                    });
-                  },
-                  child: const Text("Save Image"),
-                ),
-              if (_isSavingTaskOngoing)
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(),
-                ),
-              if (_imageAvailable)
-                ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        _imageAvailable = false;
-                      });
-
-                      final bool status = await mediaStorePlugin.deleteFile(
-                          fileName: "al_aqsa_mosque.jpeg",
-                          dirType: DirType.photo,
-                          dirName: DirType.photo.defaults);
-                      print("Delete Status: $status");
-
-                      if (status) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text('File Deleted!'),
-                        ));
-                      }
-                    },
-                    child: const Text("Delete")),
-              if (_imageAvailable)
-                Image.file(
-                  File(
-                      "/storage/emulated/0/Download/TestD/al_aqsa_mosque.jpeg"),
-                  height: 400,
-                  width: 300,
-                  fit: BoxFit.fitWidth,
                 )
+              ]
             ],
           ),
         ),
@@ -132,22 +66,25 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
     );
   }
 
-  Future<void> checkIfExist() async {
-    print("checkIfExist");
-    File file = File("/storage/emulated/0/Download/TestD/test.txt");
-
+  Future<void> testReadWriteInApi33Plus() async {
+    print("testReadWriteInApi33Plus");
+    File file = File("/storage/emulated/0/Download/TestD/$fileName");
+    print(file.existsSync());
     if ((await file.exists())) {
-      print("TRUe ${file.path}");
+      print("True ${file.path}");
 
-      await readOrWriteApiLevel33WithPermission(
-          initialRelativePath: "Download/TestD",
-          operation: () async {
-            final text = await file.readAsString();
-            print(text);
-          });
+      _text = await readOrWriteApiLevel33WithPermission(
+              fileName: fileName,
+              initialRelativePath: "Download/TestD",
+              operation: () async {
+                print('Operation');
+                final text = await file.readAsString();
+                print(text);
+              }) ??
+          '';
 
       setState(() {
-        // _imageAvailable = true;
+        _isTestDone = true;
       });
     }
   }

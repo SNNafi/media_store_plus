@@ -67,7 +67,7 @@ class MediaStore {
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
-    if (_sdkInt >= 29) {
+    if (_sdkInt > 29) {
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       return await MediaStorePlatform.instance.saveFile(
         tempFilePath: tempFilePath.sanitize,
@@ -83,7 +83,7 @@ class MediaStore {
       await Directory(directory.path).create(recursive: true);
 
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
-      File tempFile = File(tempFilePath.sanitize);
+      File tempFile = File(tempFilePath);
       File file = await tempFile.copy("${directory.path}/$fileName");
       return file.uri.toString();
     }
@@ -111,7 +111,7 @@ class MediaStore {
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
-    if (_sdkInt >= 29) {
+    if (_sdkInt > 29) {
       return await MediaStorePlatform.instance.deleteFile(
         fileName: fileName,
         dirType: dirType,
@@ -157,7 +157,7 @@ class MediaStore {
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
-    if (_sdkInt >= 29) {
+    if (_sdkInt > 29) {
       return await MediaStorePlatform.instance.getFileUri(
         fileName: fileName,
         dirType: dirType,
@@ -169,7 +169,7 @@ class MediaStore {
           relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File("${directory.path}/$fileName");
       return await MediaStorePlatform.instance
-          .getUriFromFilePath(path: file.path);
+          .getUriFromFilePath(path: file.path.sanitize);
     }
   }
 
@@ -201,7 +201,7 @@ class MediaStore {
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
-    if (_sdkInt >= 29) {
+    if (_sdkInt > 29) {
       final uri = await MediaStorePlatform.instance.getFileUri(
         fileName: fileName,
         dirType: dirType,
@@ -267,7 +267,7 @@ class MediaStore {
   /// It will read the file using [Uri] from the given [uriString] if exist. Return `true` upon reading.
   /// __It will request for user permission if app hasn't permission to read the file.__
   /// To use this method, first create a new file in a temporary location, like app data folder then provide this path.
-  /// This method then copy file contents to this temporary path to read directy by [File].
+  /// This method then copy file contents to this temporary path to read directly by [File].
   Future<bool> readFileUsingUri(
       {required String uriString, required String tempFilePath}) {
     return MediaStorePlatform.instance
@@ -307,7 +307,7 @@ class MediaStore {
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
 
-    if (_sdkInt >= 29) {
+    if (_sdkInt > 29) {
       return await MediaStorePlatform.instance.readFile(
         tempFilePath: tempFilePath.sanitize,
         fileName: fileName,
@@ -319,7 +319,7 @@ class MediaStore {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
       File file = File("${directory.path}/$fileName");
-      File tempFile = await file.copy(tempFilePath.sanitize);
+      File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();
     }
   }

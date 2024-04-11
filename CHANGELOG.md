@@ -34,3 +34,7 @@ Replace `FlutterActivity` with `Activity` to support all subclasses of `Activity
 `saveFile` now returns the file `Uri` if the operation is successful
 
 Fix bugs while using special characters in file names
+
+## 0.0.9
+
+Fix bugs below API Level `29` introduced by fixing special characters issue
