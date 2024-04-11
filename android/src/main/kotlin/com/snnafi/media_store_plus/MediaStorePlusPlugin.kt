@@ -178,9 +178,14 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             this.appFolder = appFolder
             this.dirType = dirType
             this.dirName = dirName
-            createOrUpdateFile(path, name, appFolder, dirType, dirName)
+            val uri: Uri? = createOrUpdateFile(path, name, appFolder, dirType, dirName)
             File(tempFilePath).delete()
-            result.success(true)
+
+            if (uri != null) {
+                result.success(uri.toString().trim())
+            } else {
+                result.success(null)
+            }
 
         } catch (e: Exception) {
             if (e is RecoverableSecurityException) {
@@ -244,7 +249,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             appFolder: String,
             dirType: Int,
             dirName: String
-    ) {
+    ): Uri? {
         // { photo, music, video, download }
         Log.d("DirName", dirName)
 
@@ -290,7 +295,10 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             resolver.update(uri, values, null, null)
 
             Log.d("saveFile", name)
+
+            return getUriFromDisplayName(name, appFolder, dirType, dirName)
         }
+       return null;
     }
 
 

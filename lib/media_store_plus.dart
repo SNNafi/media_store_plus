@@ -34,12 +34,14 @@ class MediaStore {
     return MediaStorePlatform.instance.getPlatformSDKInt();
   }
 
-  /// It will create new file or update exsiting file. Return `true` upon saving or updating.
+  /// It will create new file or update existing file. Return `true` upon saving or updating.
   /// __It will request for user permission if app hasn't permission to save or edit file in that location.__
   /// To use this method, first save your file in a temporary location like app data folder then provide this path.
   /// This method then copy file contents from this path and save it in the particularly location using [MediaStore].
   /// Then it will delete the temporary file.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
+  ///
+  /// Return [Uri] as [String] of the saved file if successful
   ///
   /// To save in /storage/emulated/0/Podcasts/[relativePath],
   /// [dirType] = [DirType.audio] &
@@ -52,14 +54,14 @@ class MediaStore {
   ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<bool> saveFile({
+  Future<String?> saveFile({
     required String tempFilePath,
     required DirType dirType,
     required DirName dirName,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -82,8 +84,8 @@ class MediaStore {
 
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
-      File file = await tempFile.copy(directory.path + "/" + fileName);
-      return await file.exists();
+      File file = await tempFile.copy("${directory.path}/$fileName");
+      return file.uri.toString();
     }
   }
 
@@ -103,7 +105,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -119,7 +121,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       if ((await file.exists())) {
         await file.delete();
       }
@@ -149,7 +151,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -165,7 +167,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       return await MediaStorePlatform.instance
           .getUriFromFilePath(path: file.path);
     }
@@ -193,7 +195,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -210,7 +212,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       final uri =
           await MediaStorePlatform.instance.getUriFromFilePath(path: file.path);
       return uri != null;
@@ -299,7 +301,7 @@ class MediaStore {
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
-      throw AppFolderNotSetException(
+      throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
     }
 
@@ -316,7 +318,7 @@ class MediaStore {
     } else {
       Directory directory = Directory(dirType.fullPath(
           relativePath: relativePath.orAppFolder, dirName: dirName));
-      File file = File(directory.path + "/" + fileName);
+      File file = File("${directory.path}/$fileName");
       File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();
     }

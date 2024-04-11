@@ -21,7 +21,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('getPlatformSDKInt() has not been implemented.');
   }
 
-  Future<bool> saveFile({
+  Future<String?> saveFile({
     required String tempFilePath,
     required String fileName,
     required DirType dirType,

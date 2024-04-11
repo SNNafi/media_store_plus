@@ -81,18 +81,19 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
 
                     Directory directory =
                         await getApplicationSupportDirectory();
-                    File tempFile = File(directory.path + "/" + fileName);
+                    File tempFile = File("${directory.path}/$fileName");
                     await (await rootBundle.load("assets/al_aqsa_mosque.jpeg"))
                         .writeToFile(tempFile);
-                    final bool status = await mediaStorePlugin.saveFile(
+                    final path = await mediaStorePlugin.saveFile(
                       tempFilePath: tempFile.path,
                       dirType: DirType.photo,
                       dirName: DirType.photo.defaults,
                       relativePath: relativePath,
                     );
+                    print(path);
                     setState(() {
                       _isSavingTaskOngoing = false;
-                      _imageAvailable = status;
+                      _imageAvailable = path != null;
                     });
                   },
                   child: Text("Save Image"),

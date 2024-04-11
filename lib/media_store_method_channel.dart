@@ -17,21 +17,21 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<bool> saveFile({
+  Future<String?> saveFile({
     required String tempFilePath,
     required String fileName,
     required DirType dirType,
     required DirName dirName,
     required String relativePath,
   }) async {
-    final status = await methodChannel.invokeMethod<bool>('saveFile', {
+    final uriString = await methodChannel.invokeMethod<String?>('saveFile', {
       "tempFilePath": tempFilePath,
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
     });
-    return status ?? false;
+    return uriString;
   }
 
   @override

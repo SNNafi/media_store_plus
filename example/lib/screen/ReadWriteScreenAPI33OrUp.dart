@@ -79,13 +79,14 @@ class _ReadWriteScreenAPI33OrUpState extends State<ReadWriteScreenAPI33OrUp> {
                         File(directory.path + "/" + "al_aqsa_mosque.jpeg");
                     await (await rootBundle.load("assets/al_aqsa_mosque.jpeg"))
                         .writeToFile(tempFile);
-                    final bool status = await mediaStorePlugin.saveFile(
+                    final path = await mediaStorePlugin.saveFile(
                         tempFilePath: tempFile.path,
                         dirType: DirType.photo,
                         dirName: DirType.photo.defaults);
+                    print(path);
                     setState(() {
                       _isSavingTaskOngoing = false;
-                      _imageAvailable = status;
+                      _imageAvailable = path != null;
                     });
                   },
                   child: Text("Save Image"),

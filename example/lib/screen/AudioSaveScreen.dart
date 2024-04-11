@@ -82,17 +82,18 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
 
                     Directory directory =
                         await getApplicationSupportDirectory();
-                    File tempFile = File(directory.path + "/" + fileName);
+                    File tempFile = File("${directory.path}/$fileName");
                     await (await rootBundle.load("assets/ayat_ul_kursi.mp3"))
                         .writeToFile(tempFile);
-                    final bool status = await mediaStorePlugin.saveFile(
+                    final String? path = await mediaStorePlugin.saveFile(
                       tempFilePath: tempFile.path,
                       dirType: widget.dirType,
                       dirName: widget.dirType.defaults,
                     );
+                    print(path);
                     setState(() {
                       _isSavingTaskOngoing = false;
-                      _audioAvailable = status;
+                      _audioAvailable = path != null;
                     });
                   },
                   child: Text("Save Audio"),
@@ -188,7 +189,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
 
     if (uri != null) {
       File tempFile =
-          File((await getApplicationSupportDirectory()).path + "/" + fileName);
+          File("${(await getApplicationSupportDirectory()).path}/$fileName");
       // read using uri
       bool status = await mediaStorePlugin.readFile(
           fileName: fileName,

@@ -82,16 +82,17 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                         File(directory.path + "/" + "kaba_video.mp4");
                     await (await rootBundle.load("assets/kaba_video.mp4"))
                         .writeToFile(tempFile);
-                    final bool status = await mediaStorePlugin.saveFile(
+                    final path = await mediaStorePlugin.saveFile(
                         tempFilePath: tempFile.path,
                         dirType: DirType.video,
                         dirName: DirType.video.defaults);
+                    print(path);
                     setState(() {
                       _isSavingTaskOngoing = false;
-                      _videoAvailable = status;
+                      _videoAvailable = path != null;
                     });
 
-                    if (status) {
+                    if (path != null) {
                       _controller = VideoPlayerController.file(getFile(
                           fileName: "kaba_video.mp4",
                           dirType: DirType.video,
