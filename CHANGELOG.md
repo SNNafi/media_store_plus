@@ -15,7 +15,7 @@ Add supports for `application/octet-stream` mime type file </br>
 
 ## 0.0.4
 
-Remove munual `MIME_TYPE` detection. Let the android decides this.
+Remove manual `MIME_TYPE` detection. Let the android decides this.
 
 ## 0.0.5
 
@@ -28,3 +28,9 @@ Fix bug in native side due to gson in release mode.
 ## 0.0.7
 
 Replace `FlutterActivity` with `Activity` to support all subclasses of `Activity`, thus resolving the casting errors.
+
+## 0.0.8
+
+`saveFile` now returns the file `Uri` if the operation is successful
+
+Fix bugs while using special characters in file names
