@@ -175,4 +175,16 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       return null;
     }
   }
+
+  @override
+  Future<String?> getFilePathFromUri({required String uriString}) async {
+    final filePath =
+        await methodChannel.invokeMethod<String?>('getFilePathFromUri', {
+      "uriString": uriString,
+    });
+    if (filePath != null) {
+      return filePath;
+    }
+    return null;
+  }
 }

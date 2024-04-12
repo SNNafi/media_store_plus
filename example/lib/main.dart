@@ -65,7 +65,7 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformSDKVersion = await mediaStorePlugin.getPlatformSDKInt() ?? 0;
+      platformSDKVersion = await mediaStorePlugin.getPlatformSDKInt();
     } on PlatformException {
       platformSDKVersion = -1;
     }
@@ -95,7 +95,7 @@ class _MyAppState extends State<MyApp> {
               TextSpan(text: 'Running on: ', children: [
                 TextSpan(
                     text: _platformSDKVersion.toString(),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     )),
               ]),
@@ -103,7 +103,7 @@ class _MyAppState extends State<MyApp> {
             const SizedBox(
               height: 10,
             ),
-            Text(
+            const Text(
               'Save file in...',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
@@ -114,30 +114,30 @@ class _MyAppState extends State<MyApp> {
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return ImageSaveScreen();
+                  return const ImageSaveScreen();
                 }));
               },
-              child: Text("Image Folder"),
+              child: const Text("Image Folder"),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return AudioSaveScreen(
+                  return const AudioSaveScreen(
                     dirType: DirType.audio,
                   );
                 }));
               },
-              child: Text("Audio Folder"),
+              child: const Text("Audio Folder"),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return VideoSaveScreen();
+                  return const VideoSaveScreen();
                 }));
               },
-              child: Text("Video Folder"),
+              child: const Text("Video Folder"),
             ),
             ElevatedButton(
               onPressed: () {
@@ -148,16 +148,16 @@ class _MyAppState extends State<MyApp> {
                   );
                 }));
               },
-              child: Text("Download Folder"),
+              child: const Text("Download Folder"),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return ReadWriteScreenAPI33OrUp();
+                  return const ReadWriteScreenAPI33OrUp();
                 }));
               },
-              child: Text("Read/Write API 33 or Upper Folder"),
+              child: const Text("Read/Write API 33 or Upper Folder"),
             ),
           ],
         ),

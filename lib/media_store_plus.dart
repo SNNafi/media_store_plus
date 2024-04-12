@@ -34,14 +34,14 @@ class MediaStore {
     return MediaStorePlatform.instance.getPlatformSDKInt();
   }
 
-  /// It will create new file or update existing file. Return `true` upon saving or updating.
+  /// It will create new file or update existing file.
   /// __It will request for user permission if app hasn't permission to save or edit file in that location.__
   /// To use this method, first save your file in a temporary location like app data folder then provide this path.
   /// This method then copy file contents from this path and save it in the particularly location using [MediaStore].
   /// Then it will delete the temporary file.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
   ///
-  /// Return [Uri] as [String] of the saved file if successful
+  /// Return [Uri] as [String] of the saved file if successful otherwise `null`
   ///
   /// To save in /storage/emulated/0/Podcasts/[relativePath],
   /// [dirType] = [DirType.audio] &
@@ -243,7 +243,8 @@ class MediaStore {
   /// To use this method, first save the updated file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents from this path and edit it in the particularly location using [MediaStore].
   /// Then it will delete the temporary file.
-  Future<bool> editFile({required String uriString, required String tempFilePath}) {
+  Future<bool> editFile(
+      {required String uriString, required String tempFilePath}) {
     return MediaStorePlatform.instance
         .editFile(uriString: uriString, tempFilePath: tempFilePath.sanitize);
   }
@@ -270,8 +271,8 @@ class MediaStore {
   /// This method then copy file contents to this temporary path to read directly by [File].
   Future<bool> readFileUsingUri(
       {required String uriString, required String tempFilePath}) {
-    return MediaStorePlatform.instance
-        .readFileUsingUri(uriString: uriString, tempFilePath: tempFilePath.sanitize);
+    return MediaStorePlatform.instance.readFileUsingUri(
+        uriString: uriString, tempFilePath: tempFilePath.sanitize);
   }
 
   /// It will read the file if exists. Return `true` upon reading.
@@ -333,5 +334,10 @@ class MediaStore {
   /// To grant read or write in a particular folder use [requestForAccess]
   Future<DocumentTree?> getDocumentTree({required String uriString}) {
     return MediaStorePlatform.instance.getDocumentTree(uriString: uriString);
+  }
+
+  /// Return the file path as [String] if the given uri exist and can return a file path like `/storage/emulated/0/Pictures/AnotherFolder/al_aqsa_mosque.jpeg`, otherwise `null
+  Future<String?> getFilePathFromUri({required String uriString}) {
+    return MediaStorePlatform.instance.getFilePathFromUri(uriString: uriString);
   }
 }

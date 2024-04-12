@@ -137,6 +137,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             getFolderChildren(
                     call.argument("contentUri")!!,
             )
+        } else if (call.method == "getFilePathFromUri") {
+            filePathFromUri(Uri.parse(call.argument("uriString")!!))
         } else {
             result.notImplemented()
         }
@@ -200,7 +202,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     }
                 }
             }
-            Log.e("Exception", e.message, e)
+            Log.e("saveFile", e.message, e)
         }
     }
 
@@ -237,7 +239,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     }
                 }
             }
-            Log.e("Exception", e.message, e)
+            Log.e("deleteFile", e.message, e)
         }
     }
 
@@ -253,29 +255,35 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         // { photo, music, video, download }
         Log.d("DirName", dirName)
 
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName;
+        val relativePath: String = if (appFolder.trim().isEmpty()) {
+            dirName;
         } else {
-            relativePath = dirName + File.separator + appFolder;
+            dirName + File.separator + appFolder;
         }
 
-        val collection: Uri
-        if (dirType == 0) {
-            collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else if (dirType == 1) {
-            collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else if (dirType == 2) {
-            collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val collection: Uri = when (dirType) {
+            0 -> {
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
+
+            1 -> {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
+
+            2 -> {
+                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
+
+            else -> {
+                MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            }
         }
 
         deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
-               // put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+                // put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
                 put(
                         MediaStore.Audio.Media.RELATIVE_PATH, relativePath
                 )
@@ -298,7 +306,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
             return getUriFromDisplayName(name, appFolder, dirType, dirName)
         }
-       return null;
+        return null
     }
 
 
@@ -310,16 +318,15 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             dirType: Int,
             dirName: String
     ): Boolean {
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName + File.separator;
+        val relativePath: String = if (appFolder.trim().isEmpty()) {
+            dirName + File.separator;
         } else {
-            relativePath = dirName + File.separator + appFolder + File.separator;
+            dirName + File.separator + appFolder + File.separator;
         }
         val uri: Uri? = getUriFromDisplayName(displayName, appFolder, dirType, dirName)
         Log.d("DisplayName $displayName", uri.toString())
         if (uri != null) {
-            val resolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+            val resolver: ContentResolver = activity!!.applicationContext.contentResolver
             val selectionArgs =
                     arrayOf(displayName, relativePath)
             resolver.delete(
@@ -352,18 +359,16 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
         }
 
-        val relativePath: String;
-        if (appFolder.trim().isEmpty()) {
-            relativePath = dirName + File.separator;
+        val relativePath: String = if (appFolder.trim().isEmpty()) {
+            dirName + File.separator;
         } else {
-            relativePath = dirName + File.separator + appFolder + File.separator;
+            dirName + File.separator + appFolder + File.separator;
         }
 
-        val projection: Array<String>
-        projection = arrayOf(MediaStore.MediaColumns._ID)
+        val projection: Array<String> = arrayOf(MediaStore.MediaColumns._ID)
         val selectionArgs =
                 arrayOf(displayName, relativePath)
-        val cursor: Cursor = activity!!.applicationContext.getContentResolver().query(
+        val cursor: Cursor = activity!!.applicationContext.contentResolver.query(
                 uri,
                 projection,
                 MediaStore.Audio.Media.DISPLAY_NAME + " =?  AND " + MediaStore.Audio.Media.RELATIVE_PATH + " =? ",
@@ -375,7 +380,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             val columnIndex: Int = cursor.getColumnIndex(projection[0])
             val fileId: Long = cursor.getLong(columnIndex)
             cursor.close()
-            Uri.parse(uri.toString() + "/" + fileId)
+            Uri.parse("$uri/$fileId")
         } else {
             null
         }
@@ -393,7 +398,8 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 result.success(uri?.toString()?.trim())
             }
 
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e("uriFromFilePath", e.message, e)
         }
         return null
     }
@@ -438,7 +444,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         val fileUri = Uri.parse(uriString)
         try {
             val contentResolver: ContentResolver =
-                    activity!!.applicationContext.getContentResolver()
+                    activity!!.applicationContext.contentResolver
             contentResolver.openFileDescriptor(fileUri, "w")?.use {
                 FileOutputStream(it.fileDescriptor).use { os ->
                     File(path).inputStream().use { it.copyTo(os) }
@@ -447,6 +453,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             File(path).delete()
             result.success(true)
         } catch (e: Exception) {
+            Log.e("editFile", e.message, e)
             if (e is RecoverableSecurityException) {
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
@@ -470,6 +477,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             DocumentsContract.deleteDocument(contentResolver, fileUri)
             result.success(true)
         } catch (e: Exception) {
+            Log.e("deleteFileUsingUri", e.message, e)
             if (e is RecoverableSecurityException) {
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
@@ -577,6 +585,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             }
             result.success(true)
         } catch (e: Exception) {
+            Log.e("readFileUsingUri", e.message, e)
             if (e is RecoverableSecurityException) {
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
@@ -623,6 +632,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 result.success(false)
             }
         } catch (e: Exception) {
+            Log.e("readFile", e.message, e)
             if (e is RecoverableSecurityException) {
                 val recoverableSecurityException = e as? RecoverableSecurityException
                 recoverableSecurityException?.let {
@@ -671,121 +681,159 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             val documentTreeInfo = DocumentTreeInfo(directoryUri.toString().trim(), children)
             result.success(documentTreeInfo.json)
         } catch (e: Exception) {
+            Log.e("getFolderChildren", e.message, e)
             result.success("")
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        if (requestCode == 990) {
-            if (resultCode == Activity.RESULT_OK) {
-                saveFile(
-                        tempFilePath,
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName
-                )
-            } else {
-                result.success(false)
-            }
-            return true
-        } else if (requestCode == 991) {
-            if (resultCode == Activity.RESULT_OK) {
-                deleteFile(
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName
-                )
-            } else {
-                result.success(false)
-            }
-            return true
-        } else if (requestCode == 992) {
-            // https://developer.android.com/training/data-storage/shared/documents-files#persist-permissions
-            if (resultCode == Activity.RESULT_OK) {
-                var documentTreeInfo: DocumentTreeInfo? = null
-                val uriList: MutableList<String> = mutableListOf()
-                data?.data?.also { directoryUri ->
-                    Log.d("requestForAccess: G", directoryUri.toString())
-
-                    uriList.add(directoryUri.toString().trim())
-
-
-                    val contentResolver = activity!!.applicationContext.contentResolver
-                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
-
-                    val documentsTree =
-                            DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
-
-                    val children: MutableList<DocumentInfo> = mutableListOf()
-                    documentsTree?.let {
-                        val childDocuments = documentsTree.listFiles()
-                        for (childDocument in childDocuments) {
-                            Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
-                            children.add(
-                                    DocumentInfo(
-                                            childDocument.name,
-                                            childDocument.uri.toString().trim(),
-                                            childDocument.isVirtual,
-                                            childDocument.isDirectory,
-                                            childDocument.type,
-                                            childDocument.lastModified(),
-                                            childDocument.length(),
-                                            null,
-                                            null,
-                                    )
-                            )
-                            uriList.add(childDocument.uri.toString().trim())
-                        }
+    private fun filePathFromUri(uri: Uri) {
+        try {
+            activity?.let {
+                val projection: Array<String> = arrayOf(MediaStore.MediaColumns.DATA)
+                val cursor: Cursor? = activity!!.applicationContext.contentResolver.query(uri, projection, null, null, null)
+                cursor?.let { c ->
+                    if (c.moveToFirst()) {
+                        val columnIndex = c.getColumnIndexOrThrow(projection[0]);
+                        val path = c.getString(columnIndex)
+                        Log.d("filePathFromUri[$uri]", path)
+                        result.success(path)
                     }
-                    documentTreeInfo = DocumentTreeInfo(directoryUri.toString().trim(), children)
-
                 }
-                val string = documentTreeInfo?.json ?: ""
-                Log.d("requestForAccess: G", string)
-                result.success(string)
-            } else {
-                result.success("")
+                cursor?.close()
             }
-            return true
-        } else if (requestCode == 993) {
-            if (resultCode == Activity.RESULT_OK) {
-                editFile(this.uriString, this.tempFilePath)
-            } else {
-                result.success(false)
-            }
-            return true
-        } else if (requestCode == 994) {
-            if (resultCode == Activity.RESULT_OK) {
-                deleteFileUsingUri(this.uriString)
-            } else {
-                result.success(false)
-            }
-            return true
-        } else if (requestCode == 995) {
-            if (resultCode == Activity.RESULT_OK) {
-                readFileUsingUri(uriString, tempFilePath)
-            } else {
-                result.success(false)
-            }
-            return true
-        } else if (requestCode == 996) {
-            if (resultCode == Activity.RESULT_OK) {
-                readFile(
-                        tempFilePath,
-                        fileName,
-                        appFolder,
-                        dirType,
-                        dirName
-                )
-            } else {
-                result.success(false)
-            }
-            return true
+
+        } catch (e: Exception) {
+            Log.e("filePathFromUri", e.message, e)
         }
-        return false
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        when (requestCode) {
+            990 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    saveFile(
+                            tempFilePath,
+                            fileName,
+                            appFolder,
+                            dirType,
+                            dirName
+                    )
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            991 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    deleteFile(
+                            fileName,
+                            appFolder,
+                            dirType,
+                            dirName
+                    )
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            992 -> {
+                // https://developer.android.com/training/data-storage/shared/documents-files#persist-permissions
+                if (resultCode == Activity.RESULT_OK) {
+                    var documentTreeInfo: DocumentTreeInfo? = null
+                    val uriList: MutableList<String> = mutableListOf()
+                    data?.data?.also { directoryUri ->
+                        Log.d("requestForAccess: G", directoryUri.toString())
+
+                        uriList.add(directoryUri.toString().trim())
+
+
+                        val contentResolver = activity!!.applicationContext.contentResolver
+                        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        contentResolver.takePersistableUriPermission(directoryUri, takeFlags)
+
+                        val documentsTree =
+                                DocumentFile.fromTreeUri(activity!!.applicationContext, directoryUri)
+
+                        val children: MutableList<DocumentInfo> = mutableListOf()
+                        documentsTree?.let {
+                            val childDocuments = documentsTree.listFiles()
+                            for (childDocument in childDocuments) {
+                                Log.d("File: ", "${childDocument.name}, ${childDocument.uri}")
+                                children.add(
+                                        DocumentInfo(
+                                                childDocument.name,
+                                                childDocument.uri.toString().trim(),
+                                                childDocument.isVirtual,
+                                                childDocument.isDirectory,
+                                                childDocument.type,
+                                                childDocument.lastModified(),
+                                                childDocument.length(),
+                                                null,
+                                                null,
+                                        )
+                                )
+                                uriList.add(childDocument.uri.toString().trim())
+                            }
+                        }
+                        documentTreeInfo = DocumentTreeInfo(directoryUri.toString().trim(), children)
+
+                    }
+                    val string = documentTreeInfo?.json ?: ""
+                    Log.d("requestForAccess: G", string)
+                    result.success(string)
+                } else {
+                    result.success("")
+                }
+                return true
+            }
+
+            993 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    editFile(this.uriString, this.tempFilePath)
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            994 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    deleteFileUsingUri(this.uriString)
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            995 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    readFileUsingUri(uriString, tempFilePath)
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            996 -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    readFile(
+                            tempFilePath,
+                            fileName,
+                            appFolder,
+                            dirType,
+                            dirName
+                    )
+                } else {
+                    result.success(false)
+                }
+                return true
+            }
+
+            else -> return false
+        }
     }
 }

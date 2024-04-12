@@ -96,4 +96,8 @@ abstract class MediaStorePlatform extends PlatformInterface {
   Future<DocumentTree?> getDocumentTree({required String uriString}) {
     throw UnimplementedError('getDocumentTree() has not been implemented.');
   }
+
+  Future<String?> getFilePathFromUri({required String uriString}) {
+    throw UnimplementedError('getFilePathFromUri() has not been implemented.');
+  }
 }
