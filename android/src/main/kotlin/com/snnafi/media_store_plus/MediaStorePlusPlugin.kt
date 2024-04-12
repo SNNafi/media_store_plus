@@ -472,9 +472,9 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     private fun deleteFileUsingUri(uriString: String) {
         this.uriString = uriString
         val fileUri = Uri.parse(uriString)
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         try {
-            DocumentsContract.deleteDocument(contentResolver, fileUri)
+            contentResolver.delete(fileUri, null, null)
             result.success(true)
         } catch (e: Exception) {
             Log.e("deleteFileUsingUri", e.message, e)
@@ -499,7 +499,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return false
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor? = contentResolver.query(
                 uri,
                 arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
@@ -525,7 +525,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return false
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor? = contentResolver.query(
                 uri,
                 arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
@@ -551,7 +551,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             return null
         }
 
-        val contentResolver: ContentResolver = activity!!.applicationContext.getContentResolver()
+        val contentResolver: ContentResolver = activity!!.applicationContext.contentResolver
         val cursor: Cursor = contentResolver.query(
                 uri,
                 arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
@@ -577,7 +577,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         val fileUri = Uri.parse(uriString)
         try {
             val contentResolver: ContentResolver =
-                    activity!!.applicationContext.getContentResolver()
+                    activity!!.applicationContext.contentResolver
             contentResolver.openInputStream(fileUri)?.use { inputStream ->
                 File(path).outputStream().use {
                     inputStream.copyTo(it)
@@ -621,7 +621,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             val uri: Uri? = getUriFromDisplayName(name, appFolder, dirType, dirName)
             if (uri != null) {
                 val contentResolver: ContentResolver =
-                        activity!!.applicationContext.getContentResolver()
+                        activity!!.applicationContext.contentResolver
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     File(path).outputStream().use {
                         inputStream.copyTo(it)

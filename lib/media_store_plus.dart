@@ -336,7 +336,7 @@ class MediaStore {
     return MediaStorePlatform.instance.getDocumentTree(uriString: uriString);
   }
 
-  /// Return the file path as [String] if the given uri exist and can return a file path like `/storage/emulated/0/Pictures/AnotherFolder/al_aqsa_mosque.jpeg`, otherwise `null
+  /// Return the file path as [String] if the given uri exist and can return a file path like `/storage/emulated/0/Pictures/AnotherFolder/al_aqsa_mosque.jpeg`, otherwise `null`
   Future<String?> getFilePathFromUri({required String uriString}) {
     return MediaStorePlatform.instance.getFilePathFromUri(uriString: uriString);
   }

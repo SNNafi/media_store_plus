@@ -38,3 +38,9 @@ Fix bugs while using special characters in file names
 ## 0.0.9
 
 Fix bugs below API Level `29` introduced by fixing special characters issue
+
+## 0.1.0
+
+Add `getFilePathFromUri()` to get the file path from a `Uri`
+
+Update the `deleteFile()` implementation
