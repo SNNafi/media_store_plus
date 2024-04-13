@@ -180,11 +180,11 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             this.appFolder = appFolder
             this.dirType = dirType
             this.dirName = dirName
-            val uri: Uri? = createOrUpdateFile(path, name, appFolder, dirType, dirName)
+            val saveInfo: SaveInfo? = createOrUpdateFile(path, name, appFolder, dirType, dirName)
             File(tempFilePath).delete()
 
-            if (uri != null) {
-                result.success(uri.toString().trim())
+            if (saveInfo != null) {
+                result.success(saveInfo.json)
             } else {
                 result.success(null)
             }
@@ -251,7 +251,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             appFolder: String,
             dirType: Int,
             dirName: String
-    ): Uri? {
+    ): SaveInfo? {
         // { photo, music, video, download }
         Log.d("DirName", dirName)
 
@@ -279,7 +279,9 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             }
         }
 
-        deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
+        val isReplaced = deleteFileUsingDisplayName(name, appFolder, dirType, dirName)
+        Log.d("saveFile<isReplaced>", isReplaced.toString())
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, name)
@@ -302,9 +304,18 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             values.put(MediaStore.Audio.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
 
-            Log.d("saveFile", name)
+            val displayName = getDisplayNameFromUri(uri).toString()
 
-            return getUriFromDisplayName(name, appFolder, dirType, dirName)
+            Log.d("saveFile", name)
+            Log.d("saveFile", uri.toString())
+            Log.d("saveFile<displayName>", displayName)
+
+            val saveStatus: SaveStatus = when (isReplaced) {
+                false -> if (name.trim() == displayName.trim()) SaveStatus.CREATED else SaveStatus.DUPLICATED
+                else -> SaveStatus.REPLACED
+            }
+
+            return SaveInfo(displayName, uri.toString(), saveStatus)
         }
         return null
     }
@@ -348,15 +359,22 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             dirType: Int,
             dirName: String
     ): Uri? {
-        val uri: Uri
-        if (dirType == 0) {
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        } else if (dirType == 1) {
-            uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        } else if (dirType == 2) {
-            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        } else {
-            uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        val uri: Uri = when (dirType) {
+            0 -> {
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            }
+
+            1 -> {
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            }
+
+            2 -> {
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            }
+
+            else -> {
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            }
         }
 
         val relativePath: String = if (appFolder.trim().isEmpty()) {
@@ -690,7 +708,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         try {
             activity?.let {
                 val projection: Array<String> = arrayOf(MediaStore.MediaColumns.DATA)
-                val cursor: Cursor? = activity!!.applicationContext.contentResolver.query(uri, projection, null, null, null)
+                val cursor: Cursor? = it.applicationContext.contentResolver.query(uri, projection, null, null, null)
                 cursor?.let { c ->
                     if (c.moveToFirst()) {
                         val columnIndex = c.getColumnIndexOrThrow(projection[0]);
@@ -708,6 +726,28 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     }
 
+    private fun getDisplayNameFromUri(uri: Uri): String? {
+        try {
+            activity?.let {
+                val projection: Array<String> = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+                val cursor: Cursor? = it.applicationContext.contentResolver.query(uri, projection, null, null, null)
+                cursor?.let { c ->
+                    if (c.moveToFirst()) {
+                        val columnIndex = c.getColumnIndexOrThrow(projection[0]);
+                        val name = c.getString(columnIndex)
+                        Log.d("getDisplayNameFromUri[$uri]", name)
+                        c.close()
+                        return name
+                    }
+                }
+
+            }
+        } catch (e: Exception) {
+            Log.e("getDisplayNameFromUri", e.message, e)
+        }
+        return null
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         when (requestCode) {
             990 -> {
@@ -720,7 +760,7 @@ class MediaStorePlusPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                             dirName
                     )
                 } else {
-                    result.success(false)
+                    result.success(null)
                 }
                 return true
             }

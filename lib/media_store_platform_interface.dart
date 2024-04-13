@@ -1,3 +1,4 @@
+import 'package:media_store_plus/src/save_info.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'media_store_method_channel.dart';
@@ -21,7 +22,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     throw UnimplementedError('getPlatformSDKInt() has not been implemented.');
   }
 
-  Future<String?> saveFile({
+  Future<SaveInfo?> saveFile({
     required String tempFilePath,
     required String fileName,
     required DirType dirType,

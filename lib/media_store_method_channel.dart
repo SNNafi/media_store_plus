@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
+import 'package:media_store_plus/src/save_info.dart';
 
 import 'media_store_platform_interface.dart';
 
@@ -17,21 +20,28 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<String?> saveFile({
+  Future<SaveInfo?> saveFile({
     required String tempFilePath,
     required String fileName,
     required DirType dirType,
     required DirName dirName,
     required String relativePath,
   }) async {
-    final uriString = await methodChannel.invokeMethod<String?>('saveFile', {
+    final string = await methodChannel.invokeMethod<String?>('saveFile', {
       "tempFilePath": tempFilePath,
       "fileName": fileName,
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
     });
-    return uriString;
+
+    final jsonString = (string ?? '');
+    final json = jsonDecode(jsonString);
+    try {
+      return SaveInfo.fromJson(json);
+    } catch (e) {
+      return null;
+    }
   }
 
   @override

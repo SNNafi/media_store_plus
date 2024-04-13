@@ -11,7 +11,7 @@ data class DocumentTreeInfo(
     val children: List<DocumentInfo>
 ) {
     val json: String
-        get() = Gson().toJson(this);
+        get() = Gson().toJson(this)
 }
 
 data class DocumentInfo(

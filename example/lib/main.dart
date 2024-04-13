@@ -78,6 +78,9 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformSDKVersion = platformSDKVersion;
     });
+
+    print((await mediaStorePlugin.getFilePathFromUri(uriString: 'content://media/external/images/media/1000000056')));
+    print((await mediaStorePlugin.getFilePathFromUri(uriString: 'content://media/external_primary/images/media/1000000057')));
   }
 
   @override

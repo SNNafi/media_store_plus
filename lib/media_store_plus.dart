@@ -4,12 +4,14 @@ import 'package:media_store_plus/src/dir_type.dart';
 import 'package:media_store_plus/src/document_tree.dart';
 import 'package:media_store_plus/src/exceptions.dart';
 import 'package:media_store_plus/src/extensions.dart';
+import 'package:media_store_plus/src/save_info.dart';
 
 import 'media_store_platform_interface.dart';
 
 export 'package:media_store_plus/src/dir_type.dart';
 export 'package:media_store_plus/src/document_tree.dart';
 export 'package:media_store_plus/src/extensions.dart';
+export 'package:media_store_plus/src/save_info.dart';
 
 /// To use Android `MediaStore` API in Flutter. It supports both read & write operation in every android version.
 /// It also requests for appropriate permission, if needed.
@@ -41,7 +43,7 @@ class MediaStore {
   /// Then it will delete the temporary file.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
   ///
-  /// Return [Uri] as [String] of the saved file if successful otherwise `null`
+  /// Return [SaveInfo] if successful otherwise `null`
   ///
   /// To save in /storage/emulated/0/Podcasts/[relativePath],
   /// [dirType] = [DirType.audio] &
@@ -54,7 +56,7 @@ class MediaStore {
   ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
-  Future<String?> saveFile({
+  Future<SaveInfo?> saveFile({
     required String tempFilePath,
     required DirType dirType,
     required DirName dirName,
@@ -85,7 +87,15 @@ class MediaStore {
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
       File file = await tempFile.copy("${directory.path}/$fileName");
-      return file.uri.toString();
+      Uri? fileUri = await MediaStorePlatform.instance
+          .getUriFromFilePath(path: file.path.sanitize);
+      if (fileUri != null) {
+        return SaveInfo(
+            name: fileName,
+            uri: fileUri,
+            saveStatus: SaveStatus.createdOrReplaced);
+      }
+      return null;
     }
   }
 

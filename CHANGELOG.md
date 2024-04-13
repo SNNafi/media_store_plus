@@ -44,3 +44,9 @@ Fix bugs below API Level `29` introduced by fixing special characters issue
 Add `getFilePathFromUri()` to get the file path from a `Uri`
 
 Update the `deleteFile()` implementation
+
+## 0.1.1
+
+Add `SaveInfo` class to get info about a file after saving.
+
+`saveFile` now returns `SaveInfo`
