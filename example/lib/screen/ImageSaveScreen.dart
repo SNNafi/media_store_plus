@@ -9,7 +9,9 @@ import '../main.dart';
 import '../util.dart';
 
 class ImageSaveScreen extends StatefulWidget {
-  const ImageSaveScreen({Key? key}) : super(key: key);
+  final StorageVolume volume;
+
+  const ImageSaveScreen({Key? key, required this.volume}) : super(key: key);
 
   @override
   State<ImageSaveScreen> createState() => _ImageSaveScreenState();
@@ -52,10 +54,12 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                     dirType: DirType.photo,
                     dirName: DirType.photo.defaults,
                     relativePath: relativePath,
+                    volume: widget.volume,
                   );
                   if (uri != null) {
                     setState(() {
-                      _fileUri = uri.path;
+                      _fileUri = uri.toString();
+                      print(_fileUri);
                     });
                   }
                 },
@@ -88,6 +92,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                       dirType: DirType.photo,
                       dirName: DirType.photo.defaults,
                       relativePath: relativePath,
+                      volume: widget.volume,
                     );
                     print(saveInfo);
                     setState(() {
@@ -114,6 +119,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                         dirType: DirType.photo,
                         dirName: DirType.photo.defaults,
                         relativePath: relativePath,
+                        volume: widget.volume,
                       );
                       print("Delete Status: $status");
 
@@ -132,6 +138,7 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
                     dirType: DirType.photo,
                     dirName: DirType.photo.defaults,
                     relativePath: relativePath,
+                    volume: widget.volume,
                   ),
                   height: 400,
                   width: 300,
@@ -151,8 +158,9 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
       dirType: DirType.photo,
       dirName: DirType.photo.defaults,
       relativePath: relativePath,
+      volume: widget.volume,
     );
-
+    print(file.path);
     if ((await file.exists())) {
       setState(() {
         _imageAvailable = true;

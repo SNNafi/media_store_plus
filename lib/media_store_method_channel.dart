@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
-import 'package:media_store_plus/src/save_info.dart';
 
 import 'media_store_platform_interface.dart';
 
@@ -25,6 +24,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) async {
     final string = await methodChannel.invokeMethod<String?>('saveFile', {
@@ -33,6 +33,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "volume": volume.name,
     });
 
     final jsonString = (string ?? '');
@@ -49,6 +50,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) async {
     final status = await methodChannel.invokeMethod<bool>('deleteFile', {
@@ -56,6 +58,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "volume": volume.name,
     });
     return status ?? false;
   }
@@ -65,6 +68,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) async {
     final uriString = await methodChannel.invokeMethod<String?>('getFileUri', {
@@ -72,6 +76,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "volume": volume.name,
     });
     if (uriString != null) {
       return Uri.parse(uriString);
@@ -153,6 +158,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) async {
     final status = await methodChannel.invokeMethod<bool>('readFile', {
@@ -161,6 +167,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "volume": volume.name,
     });
     return status ?? false;
   }
@@ -196,5 +203,21 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       return filePath;
     }
     return null;
+  }
+
+  @override
+  Future<List<List<String>>> getAvailableStorageDirectories() async {
+    final names = await methodChannel
+        .invokeListMethod<String>('getAvailableStorageDirectoriesNames');
+    final paths = await methodChannel
+        .invokeListMethod<String>('getAvailableStorageDirectoryPaths');
+    return [names ?? [], paths ?? []];
+  }
+
+  @override
+  Future<List<String>> getAvailableStorageDirectoryPaths() async {
+    final list = await methodChannel
+        .invokeListMethod<String>('getAvailableStorageDirectoryPaths');
+    return list ?? <String>[];
   }
 }

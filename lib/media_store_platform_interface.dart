@@ -1,4 +1,3 @@
-import 'package:media_store_plus/src/save_info.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'media_store_method_channel.dart';
@@ -27,6 +26,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) {
     throw UnimplementedError('saveFile() has not been implemented.');
@@ -36,6 +36,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) {
     throw UnimplementedError('deleteFile() has not been implemented.');
@@ -45,6 +46,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) {
     throw UnimplementedError('getFileUri() has not been implemented.');
@@ -85,6 +87,7 @@ abstract class MediaStorePlatform extends PlatformInterface {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    required StorageVolume volume,
     required String relativePath,
   }) {
     throw UnimplementedError('readFile() has not been implemented.');
@@ -100,5 +103,13 @@ abstract class MediaStorePlatform extends PlatformInterface {
 
   Future<String?> getFilePathFromUri({required String uriString}) {
     throw UnimplementedError('getFilePathFromUri() has not been implemented.');
+  }
+
+  Future<List<List<String>>> getAvailableStorageDirectories() {
+    throw UnimplementedError('getAvailableStorageDirectories() has not been implemented.');
+  }
+
+  Future<List<String>> getAvailableStorageDirectoryPaths() {
+    throw UnimplementedError('getAvailableStorageDirectoryPaths() has not been implemented.');
   }
 }

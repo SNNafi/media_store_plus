@@ -1,4 +1,5 @@
 import 'package:media_store_plus/src/exceptions.dart';
+import 'package:media_store_plus/src/storage_volume.dart';
 
 ///
 class FilePath {
@@ -39,16 +40,20 @@ extension DirTypeVale on DirType {
     }
   }
 
-  /// It will provide the direct file path for [DirType] & [DirName] using [relativePath]
+  /// It will provide the direct file path for [DirType] & [DirName] using [relativePath] for the [StorageVolume]
+  /// Default value for [StorageVolume] is the primary storage i.e. "/storage/emulated/0/"
   /// Example: For [DirType.audio] && [DirName.podcasts], it will return "/storage/emulated/0/Podcasts/[relativePath]"
   /// For setting, [relativePath] = [FilePath.root], it will return "/storage/emulated/0/Podcasts"
-  String fullPath({required String relativePath, required DirName dirName}) {
+  String fullPath(
+      {required String relativePath,
+      required DirName dirName,
+      StorageVolume volume = StorageVolume.primary}) {
     checkDirTypeAndName(dirType: this, dirName: dirName);
     final segment = relativePath.trim();
     if (segment == FilePath.root) {
-      return "/storage/emulated/0/${dirName.folder}";
+      return "${volume.path}${dirName.folder}";
     }
-    return "/storage/emulated/0/${dirName.folder}/$segment";
+    return "${volume.path}${dirName.folder}/$segment";
   }
 }
 

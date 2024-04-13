@@ -5,6 +5,7 @@ import 'package:media_store_plus/src/document_tree.dart';
 import 'package:media_store_plus/src/exceptions.dart';
 import 'package:media_store_plus/src/extensions.dart';
 import 'package:media_store_plus/src/save_info.dart';
+import 'package:media_store_plus/src/storage_volume.dart';
 
 import 'media_store_platform_interface.dart';
 
@@ -12,6 +13,7 @@ export 'package:media_store_plus/src/dir_type.dart';
 export 'package:media_store_plus/src/document_tree.dart';
 export 'package:media_store_plus/src/extensions.dart';
 export 'package:media_store_plus/src/save_info.dart';
+export 'package:media_store_plus/src/storage_volume.dart';
 
 /// To use Android `MediaStore` API in Flutter. It supports both read & write operation in every android version.
 /// It also requests for appropriate permission, if needed.
@@ -60,6 +62,7 @@ class MediaStore {
     required String tempFilePath,
     required DirType dirType,
     required DirName dirName,
+    StorageVolume volume = StorageVolume.primary,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
@@ -76,11 +79,12 @@ class MediaStore {
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
+        volume: volume,
         relativePath: relativePath.orAppFolder,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+          relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume));
 
       await Directory(directory.path).create(recursive: true);
 
@@ -112,6 +116,7 @@ class MediaStore {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    StorageVolume volume = StorageVolume.primary,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
@@ -126,11 +131,12 @@ class MediaStore {
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
+        volume: volume,
         relativePath: relativePath.orAppFolder,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+          relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume));
       File file = File("${directory.path}/$fileName");
       if ((await file.exists())) {
         await file.delete();
@@ -158,6 +164,7 @@ class MediaStore {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    StorageVolume volume = StorageVolume.primary,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
@@ -172,11 +179,12 @@ class MediaStore {
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
+        volume: volume,
         relativePath: relativePath.orAppFolder,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+          relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume));
       File file = File("${directory.path}/$fileName");
       return await MediaStorePlatform.instance
           .getUriFromFilePath(path: file.path.sanitize);
@@ -202,6 +210,7 @@ class MediaStore {
     required String fileName,
     required DirType dirType,
     required DirName dirName,
+    StorageVolume volume = StorageVolume.primary,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
@@ -216,12 +225,13 @@ class MediaStore {
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
+        volume: volume,
         relativePath: relativePath.orAppFolder,
       );
       return uri != null;
     } else {
       Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+          relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume));
       File file = File("${directory.path}/$fileName");
       final uri =
           await MediaStorePlatform.instance.getUriFromFilePath(path: file.path);
@@ -288,7 +298,7 @@ class MediaStore {
   /// It will read the file if exists. Return `true` upon reading.
   /// __It will request for user permission if app hasn't permission to read the file.__
   /// To use this method, first create a new file in a temporary location, like app data folder then provide this path.
-  /// This method then copy file contents to this temporary path to read directy by [File].
+  /// This method then copy file contents to this temporary path to read directly by [File].
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
   ///
   /// To read /storage/emulated/0/Podcasts/[MediaStore.appFolder]/Podcasts/DailyQuran.mp3,
@@ -309,6 +319,7 @@ class MediaStore {
     required String tempFilePath,
     required DirType dirType,
     required DirName dirName,
+    StorageVolume volume = StorageVolume.primary,
     String? relativePath,
   }) async {
     if (appFolder.isEmpty) {
@@ -324,11 +335,12 @@ class MediaStore {
         fileName: fileName,
         dirType: dirType,
         dirName: dirName,
+        volume: volume,
         relativePath: relativePath.orAppFolder,
       );
     } else {
       Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+          relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume));
       File file = File("${directory.path}/$fileName");
       File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();
@@ -349,5 +361,26 @@ class MediaStore {
   /// Return the file path as [String] if the given uri exist and can return a file path like `/storage/emulated/0/Pictures/AnotherFolder/al_aqsa_mosque.jpeg`, otherwise `null`
   Future<String?> getFilePathFromUri({required String uriString}) {
     return MediaStorePlatform.instance.getFilePathFromUri(uriString: uriString);
+  }
+
+  Future<List<StorageVolume>> getAvailableStorageDirectories() async {
+    List<StorageVolume> volumes = [];
+    final v =
+        await MediaStorePlatform.instance.getAvailableStorageDirectories();
+    final names = v[0];
+    final paths = v[1];
+    if (_sdkInt > 29) {
+      if (names.length == paths.length) {
+        for (var i = 0; i < names.length; i++) {
+          volumes.add(StorageVolume(name: names[i], path: paths[i]));
+        }
+      }
+    } else {
+      volumes = paths
+          .map((path) =>
+              StorageVolume(name: path.storageNameFromPath, path: path))
+          .toList();
+    }
+    return volumes;
   }
 }

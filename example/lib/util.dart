@@ -8,21 +8,23 @@ import 'main.dart';
 
 String getPath({
   String? relativePath,
+  StorageVolume volume = StorageVolume.primary,
   required String fileName,
   required DirType dirType,
   required DirName dirName,
 }) {
-  return "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName)}/$fileName";
+  return "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume)}/$fileName";
 }
 
 File getFile({
   String? relativePath,
+  StorageVolume volume = StorageVolume.primary,
   required String fileName,
   required DirType dirType,
   required DirName dirName,
 }) {
   return File(
-    "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName)}/$fileName",
+    "${dirType.fullPath(relativePath: relativePath.orAppFolder, dirName: dirName, volume: volume)}/$fileName",
   );
 }
 

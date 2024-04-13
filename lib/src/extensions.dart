@@ -6,4 +6,8 @@ extension AppFolder on String? {
 
 extension SanitizePath on String {
   String get sanitize => Uri.encodeComponent(this);
+
+  String get storageNameFromPath => replaceAll('/storage/', '')
+      .replaceAll('/', '')
+      .replaceAll('emulated0', 'external_primary');
 }

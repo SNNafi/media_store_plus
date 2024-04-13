@@ -12,8 +12,10 @@ import '../util.dart';
 
 class AudioSaveScreen extends StatefulWidget {
   final DirType dirType;
+  final StorageVolume volume;
 
-  const AudioSaveScreen({Key? key, required this.dirType}) : super(key: key);
+  const AudioSaveScreen({Key? key, required this.dirType, required this.volume})
+      : super(key: key);
 
   @override
   State<AudioSaveScreen> createState() => _AudioSaveScreenState();
@@ -52,12 +54,14 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
-                      fileName: fileName,
-                      dirType: widget.dirType,
-                      dirName: widget.dirType.defaults);
+                    fileName: fileName,
+                    dirType: widget.dirType,
+                    dirName: widget.dirType.defaults,
+                    volume: widget.volume,
+                  );
                   if (uri != null) {
                     setState(() {
-                      _fileUri = uri.path;
+                      _fileUri = uri.toString();
                     });
                   }
                 },
@@ -89,6 +93,7 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                       tempFilePath: tempFile.path,
                       dirType: widget.dirType,
                       dirName: widget.dirType.defaults,
+                      volume: widget.volume,
                     );
                     print(saveInfo);
                     setState(() {
@@ -115,7 +120,8 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                       final bool status = await mediaStorePlugin.deleteFile(
                           fileName: fileName,
                           dirType: widget.dirType,
-                          dirName: widget.dirType.defaults);
+                          dirName: widget.dirType.defaults,
+                          volume: widget.volume);
                       print("Delete Status: $status");
 
                       if (status) {
@@ -139,7 +145,8 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
                             await player?.play(DeviceFileSource(getFile(
                                     fileName: fileName,
                                     dirType: widget.dirType,
-                                    dirName: widget.dirType.defaults)
+                                    dirName: widget.dirType.defaults,
+                                    volume: widget.volume)
                                 .path));
                           }
                         },
@@ -172,7 +179,9 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
     // File file = getFile(
     //     fileName: fileName,
     //     dirType: widget.dirType,
-    //     dirName: widget.dirType.defaults);
+    //     dirName: widget.dirType.defaults,
+    //     volume: widget.volume
+    //     );
     //
     // if ((await file.exists())) {
     //   setState(() {
@@ -185,7 +194,8 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
     final Uri? uri = await mediaStorePlugin.getFileUri(
         fileName: fileName,
         dirType: widget.dirType,
-        dirName: widget.dirType.defaults);
+        dirName: widget.dirType.defaults,
+        volume: widget.volume);
 
     if (uri != null) {
       File tempFile =
@@ -195,7 +205,8 @@ class _AudioSaveScreenState extends State<AudioSaveScreen> {
           fileName: fileName,
           tempFilePath: tempFile.path,
           dirType: widget.dirType,
-          dirName: widget.dirType.defaults);
+          dirName: widget.dirType.defaults,
+          volume: widget.volume);
 
       if (status) {
         player = AudioPlayer();

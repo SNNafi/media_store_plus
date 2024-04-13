@@ -11,7 +11,9 @@ import '../main.dart';
 import '../util.dart';
 
 class VideoSaveScreen extends StatefulWidget {
-  const VideoSaveScreen({Key? key}) : super(key: key);
+  final StorageVolume volume;
+
+  const VideoSaveScreen({Key? key, required this.volume}) : super(key: key);
 
   @override
   State<VideoSaveScreen> createState() => _VideoSaveScreenState();
@@ -50,10 +52,11 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                   final Uri? uri = await mediaStorePlugin.getFileUri(
                       fileName: "kaba_video.mp4",
                       dirType: DirType.video,
-                      dirName: DirType.video.defaults);
+                      dirName: DirType.video.defaults,
+                      volume: widget.volume);
                   if (uri != null) {
                     setState(() {
-                      _fileUri = uri.path;
+                      _fileUri = uri.toString();
                     });
                   }
                 },
@@ -82,9 +85,11 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                     await (await rootBundle.load("assets/kaba_video.mp4"))
                         .writeToFile(tempFile);
                     final saveInfo = await mediaStorePlugin.saveFile(
-                        tempFilePath: tempFile.path,
-                        dirType: DirType.video,
-                        dirName: DirType.video.defaults);
+                      tempFilePath: tempFile.path,
+                      dirType: DirType.video,
+                      dirName: DirType.video.defaults,
+                      volume: widget.volume,
+                    );
                     print(saveInfo);
                     setState(() {
                       _isSavingTaskOngoing = false;
@@ -95,7 +100,8 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                       _controller = VideoPlayerController.file(getFile(
                           fileName: "kaba_video.mp4",
                           dirType: DirType.video,
-                          dirName: DirType.video.defaults));
+                          dirName: DirType.video.defaults,
+                          volume: widget.volume));
                       _controller?.initialize();
                     }
                   },
@@ -118,7 +124,8 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
                       final bool status = await mediaStorePlugin.deleteFile(
                           fileName: "kaba_video.mp4",
                           dirType: DirType.video,
-                          dirName: DirType.video.defaults);
+                          dirName: DirType.video.defaults,
+                          volume: widget.volume);
                       print("Delete Status: $status");
 
                       if (status) {
@@ -186,7 +193,8 @@ class _VideoSaveScreenState extends State<VideoSaveScreen> {
     final Uri? uri = await mediaStorePlugin.getFileUri(
         fileName: "kaba_video.mp4",
         dirType: DirType.video,
-        dirName: DirType.video.defaults);
+        dirName: DirType.video.defaults,
+        volume: widget.volume);
 
     if (uri != null) {
       _controller = VideoPlayerController.contentUri(uri);
