@@ -11,6 +11,11 @@ abstract class MediaStorePluginException implements Exception {
   }
 }
 
+/// [MediaStoreNotInitializedException] will be thrown if [MediaStore.ensureInitialized()] is not called before calling any method.
+class MediaStoreNotInitializedException extends MediaStorePluginException {
+  const MediaStoreNotInitializedException([String? message]) : super(message);
+}
+
 /// [AppFolderNotSetException] will be thrown if [MediaStore.appFolder] is not set before calling any method.
 class AppFolderNotSetException extends MediaStorePluginException {
   const AppFolderNotSetException([String? message]) : super(message);

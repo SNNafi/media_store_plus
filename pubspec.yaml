@@ -1,6 +1,6 @@
 name: media_store_plus
 description: To use Android MediaStore API in Flutter, It supports both read & write operation in every android version through flutter.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/SNNafi/media_store_plus
 
 environment:

@@ -18,13 +18,17 @@ export 'package:media_store_plus/src/save_info.dart';
 class MediaStore {
   /// Set app directory like Music/[MediaStore.appFolder], Download/[MediaStore.appFolder], DCIM/[MediaStore.appFolder]
   static String appFolder = "";
-  int _sdkInt = 0;
+  static int _sdkInt = 0;
 
-  MediaStore() {
-    _getSDKInt();
+  /// Before calling any methods, call this method to get the platform sdk to initialize [MediaStore]
+  /// It should be called only once
+  static Future<void> ensureInitialized() async {
+    await _getSDKInt();
   }
 
-  void _getSDKInt() async {
+  MediaStore();
+
+  static Future<void> _getSDKInt() async {
     _sdkInt = await MediaStorePlatform.instance.getPlatformSDKInt();
   }
 
@@ -62,6 +66,11 @@ class MediaStore {
     required DirName dirName,
     String? relativePath,
   }) async {
+    if (_sdkInt == 0) {
+      throw const MediaStoreNotInitializedException(
+          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+    }
+
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -114,6 +123,11 @@ class MediaStore {
     required DirName dirName,
     String? relativePath,
   }) async {
+    if (_sdkInt == 0) {
+      throw const MediaStoreNotInitializedException(
+          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+    }
+
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -160,6 +174,11 @@ class MediaStore {
     required DirName dirName,
     String? relativePath,
   }) async {
+    if (_sdkInt == 0) {
+      throw const MediaStoreNotInitializedException(
+          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+    }
+
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -204,6 +223,11 @@ class MediaStore {
     required DirName dirName,
     String? relativePath,
   }) async {
+    if (_sdkInt == 0) {
+      throw const MediaStoreNotInitializedException(
+          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+    }
+
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");
@@ -311,6 +335,11 @@ class MediaStore {
     required DirName dirName,
     String? relativePath,
   }) async {
+    if (_sdkInt == 0) {
+      throw const MediaStoreNotInitializedException(
+          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+    }
+
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
           "Set the folder location first using MediaStore.appFolder");

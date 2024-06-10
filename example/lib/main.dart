@@ -13,6 +13,7 @@ final mediaStorePlugin = MediaStore();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MediaStore.ensureInitialized();
   // From API 33, we request photos, audio, videos permission to read these files. This the new way
   // From API 29, we request storage permission only to read access all files
   // API lower than 30, we request storage permission to read & write access access all files
@@ -79,8 +80,11 @@ class _MyAppState extends State<MyApp> {
       _platformSDKVersion = platformSDKVersion;
     });
 
-    print((await mediaStorePlugin.getFilePathFromUri(uriString: 'content://media/external/images/media/1000000056')));
-    print((await mediaStorePlugin.getFilePathFromUri(uriString: 'content://media/external_primary/images/media/1000000057')));
+    print((await mediaStorePlugin.getFilePathFromUri(
+        uriString: 'content://media/external/images/media/1000000056')));
+    print((await mediaStorePlugin.getFilePathFromUri(
+        uriString:
+            'content://media/external_primary/images/media/1000000057')));
   }
 
   @override

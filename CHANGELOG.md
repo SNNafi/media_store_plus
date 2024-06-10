@@ -50,3 +50,9 @@ Update the `deleteFile()` implementation
 Add `SaveInfo` class to get info about a file after saving.
 
 `saveFile` now returns `SaveInfo`
+
+## 0.1.2
+
+Added `proguard-rules.pro` info in README.md
+
+Introduce `MediaStore.ensureInitialized()`.
