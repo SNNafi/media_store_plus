@@ -100,7 +100,8 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     });
     var jsonString = (string ?? "");
     if (jsonString.isNotEmpty) {
-      return DocumentTree.fromJson(jsonString);
+      final json = jsonDecode(jsonString);
+      return DocumentTree.fromJson(json);
     } else {
       return null;
     }
@@ -180,7 +181,8 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     });
     var jsonString = (string ?? "");
     if (jsonString.isNotEmpty) {
-      return DocumentTree.fromJson(jsonString);
+      final json = jsonDecode(jsonString);
+      return DocumentTree.fromJson(json);
     } else {
       return null;
     }

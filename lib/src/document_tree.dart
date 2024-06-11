@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert';
 
 import 'package:media_store_plus/media_store_plus.dart';
 
@@ -11,13 +11,18 @@ class DocumentTree {
 
   DocumentTree({required this.uriString, required this.children});
 
-  factory DocumentTree.fromJson(dynamic data) {
-    final json = jsonDecode(data);
+  factory DocumentTree.fromJson(Map<String, dynamic> json) {
     var children = (json["children"] as List<dynamic>)
         .map((e) => Document.fromJson(e))
         .toList();
     return DocumentTree(uriString: json["uri_string"], children: children);
   }
+
+  /// Returns a serialized json map from a [DocumentTree]
+  Map<String, dynamic> toJson() => {
+        'uri_string': uriString,
+        'children': children.map((doc) => doc.toJson()).toList(),
+      };
 
   /// Requested directory's uri
   Uri get uri => Uri.parse(uriString);
@@ -62,6 +67,18 @@ class Document {
         data["is_writable"],
         data["is_deletable"],
       );
+
+  Map<String, dynamic> toJson() => {
+        'uri_string': uriString,
+        'name': name,
+        'is_virtual': isVirtual,
+        'is_directory': isDirectory,
+        'file_type': fileType,
+        'last_modified': lastModified,
+        'file_length': fileLength,
+        'is_writable': isWritable,
+        'is_deletable': isDeletable
+      };
 
   /// File uri
   Uri get uri => Uri.parse(uriString);
