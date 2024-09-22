@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
-import 'package:media_store_plus/src/save_info.dart';
 
 import 'media_store_platform_interface.dart';
 

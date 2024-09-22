@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,9 @@ final mediaStorePlugin = MediaStore();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MediaStore.ensureInitialized();
+  if (Platform.isAndroid) {
+    await MediaStore.ensureInitialized();
+  }
   // From API 33, we request photos, audio, videos permission to read these files. This the new way
   // From API 29, we request storage permission only to read access all files
   // API lower than 30, we request storage permission to read & write access access all files

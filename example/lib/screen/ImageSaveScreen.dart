@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:media_store_plus/media_store_plus.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../main.dart';
@@ -22,8 +23,13 @@ class _ImageSaveScreenState extends State<ImageSaveScreen> {
 
   String fileName = "al %aqsa_mosque.jpeg";
 
+  ///  File Path: /storage/emulated/0/Pictures/AFolder/AnotherFolder/al %aqsa_mosque.jpeg
   /// set `null`to save in relativePath [MediaStore.appFolder]
-  String? relativePath = "AnotherFolder";
+  String? relativePath = join("AFolder", "AnotherFolder");
+
+  ///  File Path: /storage/emulated/0/Pictures/AnotherFolder/al %aqsa_mosque.jpeg
+  /// set `null`to save in relativePath [MediaStore.appFolder]
+  String? relativePath2 = "AnotherFolder";
 
   @override
   void initState() {

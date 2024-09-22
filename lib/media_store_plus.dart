@@ -22,8 +22,8 @@ class MediaStore {
 
   /// Before calling any methods, call this method to get the platform sdk to initialize [MediaStore]
   /// It should be called only once
-  static Future<void> ensureInitialized() async {
-    await _getSDKInt();
+  static Future<void> ensureInitialized() {
+    return _getSDKInt();
   }
 
   MediaStore();
@@ -56,6 +56,7 @@ class MediaStore {
   /// If you want to save to the root of a directory, like, /storage/emulated/0/Podcasts,
   /// Set [relativePath] = [FilePath.root]
   /// Or in any other directory, set [relativePath] as you like,
+  /// For /storage/emulated/0/Podcasts/dir1/dir2 set [relativePath] = `join('dir1', 'dir2')`,
   /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
   ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
@@ -108,12 +109,21 @@ class MediaStore {
     }
   }
 
-  /// It will delete existing file if exist. Return `true` if deleted or return false
+  /// It will delete existing file if exist. Return `true` if deleted or return `false`
   /// __It will request for user permission if app hasn't permission to delete that file__.
-  /// To use this method, first save your file in a temporary location like app data folder then provide this path.
-  /// This method then copy file contents from this path and save it in the particularly location using [MediaStore].
-  /// Then it will delete the temporary file.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
+  ///
+  /// To delete a file located in /storage/emulated/0/Download/[MediaStore.appFolder]/File.mp3,
+  /// [fileName] = File.mp3
+  /// [dirType] = [DirType.download]
+  /// [dirName] = [DirName.download]
+  ///
+  /// If you want to delete a file in the root of a directory, like, /storage/emulated/0/Download,
+  /// Set [relativePath] = [FilePath.root]
+  /// Or in any other directory, set [relativePath] as you like.
+  /// For /storage/emulated/0/Download/dir1/dir2 set [relativePath] = `join('dir1', 'dir2')`,
+  /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
+  ///
   ///
   /// throws [AppFolderNotSetException] if [MediaStore.appFolder] is not set.
   /// throws [MisMatchDirectoryTypeAndNameException] if [DirName] not matches with [DirType].
@@ -163,6 +173,7 @@ class MediaStore {
   /// If you want to get it from the root of a directory, like, /storage/emulated/0/Podcasts,
   /// Set [relativePath] = [FilePath.root]
   /// Or in any other directory, set [relativePath] as you like,
+  /// For /storage/emulated/0/Podcasts/dir1/dir2 set [relativePath] = `join('dir1', 'dir2')`,
   /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
   ///
   ///
@@ -202,7 +213,7 @@ class MediaStore {
     }
   }
 
-  /// It will return `true` if file exist, otherwise `null`
+  /// It will return `true` if the file exist, otherwise `false`
   ///
   /// To check for /storage/emulated/0/Download/[MediaStore.appFolder]/DailyQuran.mp3,
   /// [fileName] = DailyQuran.mp3
@@ -212,6 +223,7 @@ class MediaStore {
   /// If you want to check it in the root of a directory, like, /storage/emulated/0/Podcasts,
   /// Set [relativePath] = [FilePath.root]
   /// Or in any other directory, set [relativePath] as you like,
+  /// For /storage/emulated/0/Podcasts/dir1/dir2 set [relativePath] = `join('dir1', 'dir2')`,
   /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
   ///
   ///
@@ -262,7 +274,8 @@ class MediaStore {
   /// Use this method to get read and write access by file picker.
   /// It will return [DocumentTree] if permission is granted
   ///
-  /// To open file picker in a exact location, use [initialRelativePath]. It is `optional`
+  /// To open file picker in a exact location, use [initialRelativePath]. It is __optional__ & __experimental__.
+  /// __The underlying Native API is deprecated for [initialRelativePath] & may not work__
   /// For open in Music/Quran, [initialRelativePath] = "Music/Quran"
   ///
   /// Read more about it from here: https://developer.android.com/training/data-storage/shared/documents-files#grant-access-directory
@@ -323,6 +336,7 @@ class MediaStore {
   /// If you want to read it from the root of a directory, like, /storage/emulated/0/Podcasts,
   /// Set [relativePath] = [FilePath.root]
   /// Or in any other directory, set [relativePath] as you like,
+  /// For /storage/emulated/0/Podcasts/dir1/dir2 set [relativePath] = `join('dir1', 'dir2')`,
   /// If [relativePath] is `null` it will use [MediaStore.appFolder]. Whether you set [relativePath] or not, if [MediaStore.appFolder] is `null` it will always throw [AppFolderNotSetException]
   ///
   ///

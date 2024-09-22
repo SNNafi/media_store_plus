@@ -1,4 +1,3 @@
-import 'package:media_store_plus/src/save_info.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'media_store_method_channel.dart';

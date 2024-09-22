@@ -27,7 +27,8 @@ Fix bug in native side due to gson in release mode.
 
 ## 0.0.7
 
-Replace `FlutterActivity` with `Activity` to support all subclasses of `Activity`, thus resolving the casting errors.
+Replace `FlutterActivity` with `Activity` to support all subclasses of `Activity`, thus resolving
+the casting errors.
 
 ## 0.0.8
 
@@ -56,3 +57,7 @@ Add `SaveInfo` class to get info about a file after saving.
 Added `proguard-rules.pro` info in README.md
 
 Introduce `MediaStore.ensureInitialized()`.
+
+## 0.1.3
+
+Fix & update documentation
