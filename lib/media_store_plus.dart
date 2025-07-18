@@ -44,7 +44,7 @@ class MediaStore {
   /// __It will request for user permission if app hasn't permission to save or edit file in that location.__
   /// To use this method, first save your file in a temporary location like app data folder then provide this path.
   /// This method then copy file contents from this path and save it in the particularly location using [MediaStore].
-  /// Then it will delete the temporary file.
+  /// Then it will delete the temporary file if [autoDeleteTempFile] is true.
   /// __It will use [MediaStore] from API level 30 & use direct [File] below 30__
   ///
   /// Return [SaveInfo] if successful otherwise `null`
@@ -52,6 +52,7 @@ class MediaStore {
   /// To save in /storage/emulated/0/Podcasts/[relativePath],
   /// [dirType] = [DirType.audio] &
   /// [dirName] = [DirName.podcasts]
+  /// [autoDeleteTempFile] = [true/false]
   ///
   /// If you want to save to the root of a directory, like, /storage/emulated/0/Podcasts,
   /// Set [relativePath] = [FilePath.root]
@@ -66,15 +67,18 @@ class MediaStore {
     required DirType dirType,
     required DirName dirName,
     String? relativePath,
+    bool autoDeleteTempFile = true,
   }) async {
     if (_sdkInt == 0) {
       throw const MediaStoreNotInitializedException(
-          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+        "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once",
+      );
     }
 
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
-          "Set the folder location first using MediaStore.appFolder");
+        "Set the folder location first using MediaStore.appFolder",
+      );
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
@@ -87,23 +91,30 @@ class MediaStore {
         dirType: dirType,
         dirName: dirName,
         relativePath: relativePath.orAppFolder,
+        autoDeleteTempFile: autoDeleteTempFile,
       );
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+        ),
+      );
 
       await Directory(directory.path).create(recursive: true);
 
       String fileName = Uri.parse(tempFilePath).pathSegments.last.trim();
       File tempFile = File(tempFilePath);
       File file = await tempFile.copy("${directory.path}/$fileName");
-      Uri? fileUri = await MediaStorePlatform.instance
-          .getUriFromFilePath(path: file.path.sanitize);
+      Uri? fileUri = await MediaStorePlatform.instance.getUriFromFilePath(
+        path: file.path.sanitize,
+      );
       if (fileUri != null) {
         return SaveInfo(
-            name: fileName,
-            uri: fileUri,
-            saveStatus: SaveStatus.createdOrReplaced);
+          name: fileName,
+          uri: fileUri,
+          saveStatus: SaveStatus.createdOrReplaced,
+        );
       }
       return null;
     }
@@ -135,12 +146,14 @@ class MediaStore {
   }) async {
     if (_sdkInt == 0) {
       throw const MediaStoreNotInitializedException(
-          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+        "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once",
+      );
     }
 
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
-          "Set the folder location first using MediaStore.appFolder");
+        "Set the folder location first using MediaStore.appFolder",
+      );
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
@@ -153,8 +166,12 @@ class MediaStore {
         relativePath: relativePath.orAppFolder,
       );
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+        ),
+      );
       File file = File("${directory.path}/$fileName");
       if ((await file.exists())) {
         await file.delete();
@@ -187,12 +204,14 @@ class MediaStore {
   }) async {
     if (_sdkInt == 0) {
       throw const MediaStoreNotInitializedException(
-          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+        "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once",
+      );
     }
 
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
-          "Set the folder location first using MediaStore.appFolder");
+        "Set the folder location first using MediaStore.appFolder",
+      );
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
@@ -205,11 +224,16 @@ class MediaStore {
         relativePath: relativePath.orAppFolder,
       );
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+        ),
+      );
       File file = File("${directory.path}/$fileName");
-      return await MediaStorePlatform.instance
-          .getUriFromFilePath(path: file.path.sanitize);
+      return await MediaStorePlatform.instance.getUriFromFilePath(
+        path: file.path.sanitize,
+      );
     }
   }
 
@@ -237,12 +261,14 @@ class MediaStore {
   }) async {
     if (_sdkInt == 0) {
       throw const MediaStoreNotInitializedException(
-          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+        "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once",
+      );
     }
 
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
-          "Set the folder location first using MediaStore.appFolder");
+        "Set the folder location first using MediaStore.appFolder",
+      );
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
@@ -256,11 +282,16 @@ class MediaStore {
       );
       return uri != null;
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+        ),
+      );
       File file = File("${directory.path}/$fileName");
-      final uri =
-          await MediaStorePlatform.instance.getUriFromFilePath(path: file.path);
+      final uri = await MediaStorePlatform.instance.getUriFromFilePath(
+        path: file.path,
+      );
       return uri != null;
     }
   }
@@ -279,10 +310,12 @@ class MediaStore {
   /// For open in Music/Quran, [initialRelativePath] = "Music/Quran"
   ///
   /// Read more about it from here: https://developer.android.com/training/data-storage/shared/documents-files#grant-access-directory
-  Future<DocumentTree?> requestForAccess(
-      {required String? initialRelativePath}) {
-    return MediaStorePlatform.instance
-        .requestForAccess(initialRelativePath: initialRelativePath);
+  Future<DocumentTree?> requestForAccess({
+    required String? initialRelativePath,
+  }) {
+    return MediaStorePlatform.instance.requestForAccess(
+      initialRelativePath: initialRelativePath,
+    );
   }
 
   /// It will edit the file using [Uri] from the given [uriString] if exist. Return `true` upon editing.
@@ -290,10 +323,14 @@ class MediaStore {
   /// To use this method, first save the updated file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents from this path and edit it in the particularly location using [MediaStore].
   /// Then it will delete the temporary file.
-  Future<bool> editFile(
-      {required String uriString, required String tempFilePath}) {
-    return MediaStorePlatform.instance
-        .editFile(uriString: uriString, tempFilePath: tempFilePath.sanitize);
+  Future<bool> editFile({
+    required String uriString,
+    required String tempFilePath,
+  }) {
+    return MediaStorePlatform.instance.editFile(
+      uriString: uriString,
+      tempFilePath: tempFilePath.sanitize,
+    );
   }
 
   /// It will delete existing file using [Uri] from the given [uriString] if exist. Return `true` if deleted or return false
@@ -316,10 +353,14 @@ class MediaStore {
   /// __It will request for user permission if app hasn't permission to read the file.__
   /// To use this method, first create a new file in a temporary location, like app data folder then provide this path.
   /// This method then copy file contents to this temporary path to read directly by [File].
-  Future<bool> readFileUsingUri(
-      {required String uriString, required String tempFilePath}) {
+  Future<bool> readFileUsingUri({
+    required String uriString,
+    required String tempFilePath,
+  }) {
     return MediaStorePlatform.instance.readFileUsingUri(
-        uriString: uriString, tempFilePath: tempFilePath.sanitize);
+      uriString: uriString,
+      tempFilePath: tempFilePath.sanitize,
+    );
   }
 
   /// It will read the file if exists. Return `true` upon reading.
@@ -351,12 +392,14 @@ class MediaStore {
   }) async {
     if (_sdkInt == 0) {
       throw const MediaStoreNotInitializedException(
-          "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once");
+        "MediaStore has not yet been initialized. Call 'await MediaStore.ensureInitialized()' to fix this. It should be called only once",
+      );
     }
 
     if (appFolder.isEmpty) {
       throw const AppFolderNotSetException(
-          "Set the folder location first using MediaStore.appFolder");
+        "Set the folder location first using MediaStore.appFolder",
+      );
     }
 
     checkDirTypeAndName(dirType: dirType, dirName: dirName);
@@ -370,8 +413,12 @@ class MediaStore {
         relativePath: relativePath.orAppFolder,
       );
     } else {
-      Directory directory = Directory(dirType.fullPath(
-          relativePath: relativePath.orAppFolder, dirName: dirName));
+      Directory directory = Directory(
+        dirType.fullPath(
+          relativePath: relativePath.orAppFolder,
+          dirName: dirName,
+        ),
+      );
       File file = File("${directory.path}/$fileName");
       File tempFile = await file.copy(tempFilePath);
       return await tempFile.exists();

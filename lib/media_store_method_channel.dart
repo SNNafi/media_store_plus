@@ -25,6 +25,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
     required DirType dirType,
     required DirName dirName,
     required String relativePath,
+    required bool autoDeleteTempFile,
   }) async {
     final string = await methodChannel.invokeMethod<String?>('saveFile', {
       "tempFilePath": tempFilePath,
@@ -32,6 +33,7 @@ class MethodChannelMediaStore extends MediaStorePlatform {
       "dirType": dirType.index,
       "dirName": dirName.folder,
       "appFolder": relativePath,
+      "autoDeleteTempFile": autoDeleteTempFile,
     });
 
     final jsonString = (string ?? '');
@@ -80,10 +82,10 @@ class MethodChannelMediaStore extends MediaStorePlatform {
 
   @override
   Future<Uri?> getUriFromFilePath({required String path}) async {
-    final uriString =
-        await methodChannel.invokeMethod<String?>('getUriFromFilePath', {
-      "filePath": path,
-    });
+    final uriString = await methodChannel.invokeMethod<String?>(
+      'getUriFromFilePath',
+      {"filePath": path},
+    );
     if (uriString != null) {
       return Uri.parse(uriString);
     }
@@ -91,12 +93,13 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<DocumentTree?> requestForAccess(
-      {required String? initialRelativePath}) async {
-    final string =
-        await methodChannel.invokeMethod<String>('requestForAccess', {
-      "initialRelativePath": initialRelativePath,
-    });
+  Future<DocumentTree?> requestForAccess({
+    required String? initialRelativePath,
+  }) async {
+    final string = await methodChannel.invokeMethod<String>(
+      'requestForAccess',
+      {"initialRelativePath": initialRelativePath},
+    );
     var jsonString = (string ?? "");
     if (jsonString.isNotEmpty) {
       return DocumentTree.fromJson(jsonString);
@@ -106,8 +109,10 @@ class MethodChannelMediaStore extends MediaStorePlatform {
   }
 
   @override
-  Future<bool> editFile(
-      {required String uriString, required tempFilePath}) async {
+  Future<bool> editFile({
+    required String uriString,
+    required tempFilePath,
+  }) async {
     final status = await methodChannel.invokeMethod<bool>('editFile', {
       "contentUri": uriString,
       "tempFilePath": tempFilePath,
@@ -117,28 +122,34 @@ class MethodChannelMediaStore extends MediaStorePlatform {
 
   @override
   Future<bool> deleteFileUsingUri({required String uriString}) async {
-    final status = await methodChannel
-        .invokeMethod<bool>('deleteFileUsingUri', {"contentUri": uriString});
+    final status = await methodChannel.invokeMethod<bool>(
+      'deleteFileUsingUri',
+      {"contentUri": uriString},
+    );
     return status ?? false;
   }
 
   @override
   Future<bool> isFileDeletable({required String uriString}) async {
-    final status = await methodChannel
-        .invokeMethod<bool>('isFileDeletable', {"contentUri": uriString});
+    final status = await methodChannel.invokeMethod<bool>('isFileDeletable', {
+      "contentUri": uriString,
+    });
     return status ?? false;
   }
 
   @override
   Future<bool> isFileWritable({required String uriString}) async {
-    final status = await methodChannel
-        .invokeMethod<bool>('isFileWritable', {"contentUri": uriString});
+    final status = await methodChannel.invokeMethod<bool>('isFileWritable', {
+      "contentUri": uriString,
+    });
     return status ?? false;
   }
 
   @override
-  Future<bool> readFileUsingUri(
-      {required String uriString, required tempFilePath}) async {
+  Future<bool> readFileUsingUri({
+    required String uriString,
+    required tempFilePath,
+  }) async {
     final status = await methodChannel.invokeMethod<bool>('readFileUsingUri', {
       "contentUri": uriString,
       "tempFilePath": tempFilePath,
@@ -187,10 +198,10 @@ class MethodChannelMediaStore extends MediaStorePlatform {
 
   @override
   Future<String?> getFilePathFromUri({required String uriString}) async {
-    final filePath =
-        await methodChannel.invokeMethod<String?>('getFilePathFromUri', {
-      "uriString": uriString,
-    });
+    final filePath = await methodChannel.invokeMethod<String?>(
+      'getFilePathFromUri',
+      {"uriString": uriString},
+    );
     if (filePath != null) {
       return filePath;
     }
